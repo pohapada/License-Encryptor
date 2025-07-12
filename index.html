@@ -96,6 +96,17 @@
     if (localStorage.getItem('dark') === '1') {
       document.body.classList.add('dark');
     }
+    // Persist encryption key in PWA standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      window.addEventListener('DOMContentLoaded', () => {
+        const keyInput = document.getElementById('key');
+        const savedKey = localStorage.getItem('cryptoKey');
+        if (savedKey) keyInput.value = savedKey;
+        keyInput.addEventListener('input', () => {
+          localStorage.setItem('cryptoKey', keyInput.value);
+        });
+      });
+    }
     // Dev mode toggle
     let devMode = false;
     function toggleDev() {
