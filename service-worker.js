@@ -1,13 +1,11 @@
 const CACHE_NAME = 'encryptor-cache-v1';
 const FILES_TO_CACHE = [
-  '/',
-  '/license-encryptor/',
-  '/license-encryptor/index.html',
-  '/license-encryptor/crypto-js.min.js',
-  '/license-encryptor/icon.png',
-  '/license-encryptor/icon-192.png',
-  '/license-encryptor/icon-512.png',
-  '/license-encryptor/manifest.json'
+  '/License-Encryptor/',
+  '/License-Encryptor/index.html',
+  '/License-Encryptor/crypto-js.min.js',
+  '/License-Encryptor/icon-192.png',
+  '/License-Encryptor/icon-512.png',
+  '/License-Encryptor/manifest.json'
 ];
 
 self.addEventListener('install', evt => {
@@ -31,11 +29,4 @@ self.addEventListener('activate', evt => {
     })
   );
   self.clients.claim();
-});
-
-self.addEventListener('fetch', evt => {
-  evt.respondWith(
-    caches.match(evt.request)
-      .then(resp => resp || fetch(evt.request))
-  );
 });
