@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>License Encryptor</title>
 
   <!-- PWA Manifest -->
-  <link rel="manifest" href="/License-Encryptor/manifest.json">
+  <link rel="manifest" href="manifest.json">
 
   <!-- Icons -->
-  <link rel="icon" href="/License-Encryptor/icon.png" sizes="192x192" type="image/png">
-  <link rel="apple-touch-icon" href="/License-Encryptor/icon.png" sizes="192x192">
+  <link rel="icon" href="icon.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icon.png" sizes="192x192">
 
   <!-- Mobile UI meta -->
   <meta name="theme-color" content="#2563eb">
@@ -19,7 +19,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- Local CryptoJS -->
-  <script src="/License-Encryptor/crypto-js.min.js" defer></script>
+  <script src="crypto-js.min.js" defer></script>
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -72,7 +72,7 @@
 <body>
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
   <div class="card">
-    <h1><img src="/License-Encryptor/icon.png" alt="Logo">License Encryptor</h1>
+    <h1><img src="icon.png" alt="Logo">License Encryptor</h1>
     <div class="form-group"><label for="number">License ID</label><input id="number" type="text" placeholder="مثلاً 123456789"></div>
     <div class="form-group"><label for="duration">Duration</label><select id="duration"><option value="1">1 Month</option><option value="3">3 Months</option><option value="6">6 Months</option><option value="9">9 Months</option><option value="12">12 Months</option></select></div>
     <div class="form-group"><label for="key">Encryption Key (16 chars)</label><input id="key" type="text" maxlength="16" placeholder="16-character key"></div>
@@ -84,7 +84,7 @@
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/License-Encryptor/service-worker.js')
+      navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('✅ SW registered'))
         .catch(e => console.error('❌ SW failed', e));
     }
@@ -100,8 +100,7 @@
     let devMode = false;
     function toggleDev() {
       devMode = !devMode;
-      const unixGroup = document.getElementById('unixGroup');
-      unixGroup.style.display = devMode ? 'block' : 'none';
+      document.getElementById('unixGroup').style.display = devMode ? 'block' : 'none';
       document.getElementById('btnDev').textContent = devMode ? '🛠️ Dev Mode: ON' : '🛠️ Dev Mode: OFF';
     }
     // Encryption/Decryption functions
@@ -122,9 +121,8 @@
       }
       const ts = devMode && manualUnix ? parseInt(manualUnix) : Math.floor(new Date().setMonth(new Date().getMonth() + months) / 1000);
       const plaintext = `${num}|${ts}`;
-      const encrypted = CryptoJS.AES.encrypt(plaintext, padKey(keyVal), { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }).toString();
-      lastEncrypted = encrypted;
-      outputEl.textContent = `Encrypted:\n${encrypted}\n\nUnix Time: ${ts}\nDate: ${new Date(ts * 1000).toLocaleString()}`;
+      lastEncrypted = CryptoJS.AES.encrypt(plaintext, padKey(keyVal), { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }).toString();
+      outputEl.textContent = `Encrypted:\n${lastEncrypted}\n\nUnix Time: ${ts}\nDate: ${new Date(ts * 1000).toLocaleString()}`;
       btnCopy.style.display = 'inline-block';
     }
     function decrypt() {
@@ -137,8 +135,8 @@
         return outputEl.textContent = '⚠️ Missing encrypted text or key (16 chars).';
       }
       try {
-        const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 });
-        const [num, ts] = bytes.toString(CryptoJS.enc.Utf8).split('|');
+        const [num, ts] = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 })
+          .toString(CryptoJS.enc.Utf8).split('|');
         outputEl.textContent = `Decrypted:\nLicense ID: ${num}\n\nUnix Time: ${ts}\nDate: ${new Date(parseInt(ts) * 1000).toLocaleString()}`;
       } catch (e) {
         outputEl.textContent = '❌ Decryption failed. Check your key and input.';
@@ -146,12 +144,8 @@
     }
     async function copyOutput() {
       if (!lastEncrypted) return;
-      try {
-        await navigator.clipboard.writeText(lastEncrypted);
-        alert('✅ Copied!');
-      } catch {
-        alert('❌ Copy failed.');
-      }
+      try { await navigator.clipboard.writeText(lastEncrypted); alert('✅ Copied!'); }
+      catch { alert('❌ Copy failed.'); }
     }
   </script>
 </body>
