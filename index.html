@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- CryptoJS CDN -->
+  <!-- CryptoJS (CDN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -24,57 +24,59 @@
     :root { --primary:#2563eb; --secondary:#10b981; --gray:#f3f4f6; --text:#1f2937; --card-bg:#ffffff; --shadow:rgba(0,0,0,0.05); }
     body.dark { --primary:#60a5fa; --secondary:#34d399; --gray:#1f2937; --text:#f3f4f6; --card-bg:#111827; --shadow:rgba(255,255,255,0.05); }
     * { box-sizing:border-box; margin:0; padding:0; }
-    html, body { height:100%; }
+    html,body{height:100%;}
     body {
-      font-family:'Inter',sans-serif; background:var(--gray); color:var(--text);
-      display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem;
-      transition:background .3s, color .3s; position:relative;
+      font-family:'Inter',sans-serif;
+      background:var(--gray); color:var(--text);
+      display:flex; align-items:center; justify-content:center;
+      padding:1rem; transition:background .3s,color .3s;
     }
     .card {
-      background:var(--card-bg); border-radius:1.5rem; box-shadow:0 10px 25px var(--shadow);
-      width:100%; max-width:480px; padding:2rem; animation:fadeIn .4s ease-out;
+      background:var(--card-bg); border-radius:1.5rem;
+      box-shadow:0 10px 25px var(--shadow);
+      width:100%; max-width:480px; padding:2rem;
+      animation:fadeIn .4s ease-out;
     }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
-    h1 { display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; margin-bottom:1.5rem; color:var(--primary); }
-    h1 img { width:1.5rem; height:1.5rem; margin-right:0.5rem; }
-    .form-group { margin-bottom:1rem; }
-    label { display:block; font-weight:600; margin-bottom:.5rem; }
-    input, select {
-      width:100%; padding:.75rem 1rem; border:1px solid #d1d5db; border-radius:.75rem;
-      background:#fff; font-size:1rem; transition:border-color .2s, background .3s;
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0)}}
+    h1{display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin-bottom:1.5rem;color:var(--primary)}
+    h1 img{width:1.5rem;height:1.5rem;margin-right:0.5rem}
+    .form-group{margin-bottom:1rem}
+    label{display:block;font-weight:600;margin-bottom:.5rem}
+    input,select{
+      width:100%;padding:.75rem 1rem;border:1px solid #d1d5db;border-radius:.75rem;
+      background:#fff;font-size:1rem;transition:border-color .2s,background .3s;
     }
-    body.dark input, body.dark select { background:#1e293b; color:#f3f4f6; border-color:#374151; }
-    input:focus, select:focus { border-color:var(--primary); outline:none; }
-    .btn-group { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.25rem; }
-    button { flex:1 1 48%; padding:.75rem; border:none; border-radius:.75rem; font-weight:600; font-size:1rem; cursor:pointer; transition:transform .2s; }
-    button:hover { transform:translateY(-2px); }
-    .btn-encrypt { background:var(--primary); color:#fff; }
-    .btn-decrypt { background:var(--secondary); color:#fff; }
-    .btn-dev { background:#9ca3af; color:#fff; }
-    .btn-copy { background:#6366f1; color:#fff; display:none; }
-    .dark-toggle, .lock-toggle {
-      position:fixed; top:1rem; right:1rem; width:2.5rem; height:2.5rem;
-      border:none; border-radius:50%; background:var(--secondary); color:#fff; font-size:1.25rem;
-      display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px var(--shadow);
-      transition:transform .2s; z-index:10;
+    body.dark input,body.dark select{background:#1e293b;color:#f3f4f6;border-color:#374151}
+    input:focus,select:focus{border-color:var(--primary);outline:none}
+    .btn-group{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.25rem}
+    button{flex:1 1 48%;padding:.75rem;border:none;border-radius:.75rem;font-weight:600;font-size:1rem;cursor:pointer;transition:transform .2s}
+    button:hover{transform:translateY(-2px)}
+    .btn-encrypt{background:var(--primary);color:#fff}
+    .btn-decrypt{background:var(--secondary);color:#fff}
+    .btn-dev{background:#9ca3af;color:#fff}
+    .btn-copy{background:#6366f1;color:#fff;display:none}
+    .dark-toggle,.lock-toggle{
+      position:fixed;top:1rem;width:2.5rem;height:2.5rem;border:none;border-radius:50%;
+      background:var(--secondary);color:#fff;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 2px 8px var(--shadow);transition:transform .2s;z-index:10;
     }
-    .dark-toggle:hover, .lock-toggle:hover { transform:scale(1.1); }
-    .lock-toggle { right:4rem; display:none; } /* نمایش در Dev Mode */
-
-    pre {
-      background:#f9fafb; padding:1rem; border-left:4px solid var(--primary);
-      border-radius:.75rem; margin-top:1.5rem; font-size:.9rem; white-space:pre-wrap;
-      color:var(--text); font-family:'Courier New',monospace; cursor:pointer;
+    .dark-toggle{right:1rem}
+    .lock-toggle{right:4rem;display:none}
+    pre{
+      background:#f9fafb;padding:1rem;border-left:4px solid var(--primary);
+      border-radius:.75rem;margin-top:1.5rem;font-size:.9rem;white-space:pre-wrap;
+      color:var(--text);font-family:'Courier New',monospace;cursor:pointer;
     }
-    body.dark pre { background:#1e293b; }
-    @media(max-width:480px){ button { flex:1 1 100%; } }
+    body.dark pre{background:#1e293b}
+    @media(max-width:480px){button{flex:1 1 100%}}
+    /* Eye icon button reset */
+    .eye-btn{position:absolute;top:50%;right:0.75rem;transform:translateY(-50%);background:none;border:none;padding:0;width:1.25rem;height:1.25rem;cursor:pointer;}
+    .eye-btn svg{width:100%;height:100%;fill:var(--text);}
   </style>
 </head>
 <body>
 
-  <!-- Dark Mode Toggle -->
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
-  <!-- Lock Key Toggle (shown in Dev Mode) -->
   <button class="lock-toggle" id="lockBtn" onclick="toggleLock()">🔒</button>
 
   <div class="card">
@@ -100,10 +102,15 @@
       <label for="key">Encryption Key (16 chars)</label>
       <div style="position:relative;">
         <input id="key" type="password" maxlength="16" placeholder="16-character key" style="padding-right:2.5rem;" />
-        <button id="toggleKeyVis" type="button" title="Show/Hide key"
-          style="position:absolute; top:50%; right:0.5rem; transform:translateY(-50%);
-                 border:none; background:none; cursor:pointer; font-size:1rem;">
-          👁️
+        <button class="eye-btn" id="toggleKeyVis" aria-label="Show or hide key">
+          <!-- eye open -->
+          <svg id="eyeOpen" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5zm0-9a3.5 3.5 0 100 7 3.5 3.5 0 000-7z"/>
+          </svg>
+          <!-- eye closed -->
+          <svg id="eyeClosed" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+            <path d="M12 6.5c2.89 0 5.33 1.71 6.5 4.25-1.17 2.54-3.61 4.25-6.5 4.25s-5.33-1.71-6.5-4.25C6.67 8.21 9.11 6.5 12 6.5m0-2c-3.91 0-7.23 2.24-8.94 5.5 1.71 3.26 5.03 5.5 8.94 5.5s7.23-2.24 8.94-5.5C19.23 6.74 15.91 4.5 12 4.5zM12 9a3 3 0 013 3c0 .34-.06.66-.17.96l3.54 3.54-1.41 1.41L12 14.41l-3.96 3.96-1.41-1.41L10.59 12l-3.96-3.96 1.41-1.41L12 9z"/>
+          </svg>
         </button>
       </div>
     </div>
@@ -127,7 +134,7 @@
   let lastEncryptedRaw = '', lastEncryptedTelegram = '', lastMode = '';
   let isKeyLocked = false;
 
-  // Register Service Worker
+  // Register SW
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
   }
@@ -135,36 +142,40 @@
   // Dark mode
   function toggleDarkMode() {
     document.body.classList.toggle('dark');
-    localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
+    localStorage.setItem('dark', document.body.classList.contains('dark')?'1':'0');
   }
-  if (localStorage.getItem('dark') === '1') {
-    document.body.classList.add('dark');
-  }
+  if (localStorage.getItem('dark')==='1') document.body.classList.add('dark');
 
-  // Dev mode & Lock button
-  function toggleDev() {
-    const unixG = document.getElementById('unixGroup');
-    const lockBtn = document.getElementById('lockBtn');
-    const btn = document.getElementById('btnDev');
-    devMode = !devMode;
-    unixG.style.display = devMode ? 'block' : 'none';
-    lockBtn.style.display = devMode ? 'flex' : 'none';
-    btn.textContent = devMode ? '🛠️ Dev Mode: ON' : '🛠️ Dev Mode: OFF';
-  }
+  // Dev & lock
   let devMode = false;
-
+  function toggleDev() {
+    devMode = !devMode;
+    document.getElementById('unixGroup').style.display = devMode?'block':'none';
+    const lockBtn = document.getElementById('lockBtn');
+    lockBtn.style.display = devMode?'flex':'none';
+    document.getElementById('btnDev').textContent = devMode?'🛠️ Dev Mode: ON':'🛠️ Dev Mode: OFF';
+  }
   function toggleLock() {
     isKeyLocked = !isKeyLocked;
     const keyInput = document.getElementById('key');
-    const lockBtn = document.getElementById('lockBtn');
     keyInput.disabled = isKeyLocked;
-    lockBtn.textContent = isKeyLocked ? '🔓' : '🔒';
+    document.getElementById('lockBtn').textContent = isKeyLocked?'🔓':'🔒';
   }
 
-  // Show/hide key
-  document.getElementById('toggleKeyVis').addEventListener('click', () => {
+  // Eye toggle
+  document.getElementById('toggleKeyVis').addEventListener('click',()=>{
     const ki = document.getElementById('key');
-    ki.type = ki.type === 'password' ? 'text' : 'password';
+    const open = document.getElementById('eyeOpen');
+    const closed = document.getElementById('eyeClosed');
+    if(ki.type==='password'){
+      ki.type='text';
+      open.style.display='none';
+      closed.style.display='block';
+    } else {
+      ki.type='password';
+      open.style.display='block';
+      closed.style.display='none';
+    }
   });
 
   // Persist key in PWA
@@ -177,97 +188,64 @@
     });
   }
 
-  // Helpers
-  function padKey(key) {
-    return CryptoJS.enc.Utf8.parse(key.padEnd(16, '\0').slice(0, 16));
+  function padKey(k){ return CryptoJS.enc.Utf8.parse(k.padEnd(16,'\0').slice(0,16)); }
+
+  function encrypt(){
+    const num=document.getElementById('number').value.trim();
+    const months=parseInt(document.getElementById('duration').value,10);
+    const keyVal=document.getElementById('key').value.trim();
+    const manualUnix=document.getElementById('manualUnix').value.trim();
+    const outputEl=document.getElementById('output');
+    const btnCopy=document.getElementById('btnCopy');
+    if(!/^\d+$/.test(num)||keyVal.length!==16){
+      btnCopy.style.display='none';
+      return outputEl.textContent='⚠️ License ID must be numeric and the key must be exactly 16 characters.';
+    }
+    const ts=devMode&&manualUnix?parseInt(manualUnix,10):Math.floor(new Date().setMonth(new Date().getMonth()+months)/1000);
+    const plaintext=`${num}|${ts}`;
+    lastEncryptedRaw=CryptoJS.AES.encrypt(plaintext,padKey(keyVal),{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString();
+    lastEncryptedTelegram='`'+lastEncryptedRaw+'`';
+    lastMode='encrypt';
+    outputEl.textContent=`Encrypted:\n${lastEncryptedRaw}\n\nUnix Time: ${ts}\nDate: ${new Date(ts*1000).toLocaleString()}`;
+    btnCopy.style.display='inline-block';
   }
 
-  // Encrypt
-  function encrypt() {
-    const num = document.getElementById('number').value.trim();
-    const months = parseInt(document.getElementById('duration').value, 10);
-    const keyVal = document.getElementById('key').value.trim();
-    const manualUnix = document.getElementById('manualUnix').value.trim();
-    const outputEl = document.getElementById('output');
-    const btnCopy = document.getElementById('btnCopy');
-
-    if (!/^\d+$/.test(num) || keyVal.length !== 16) {
-      btnCopy.style.display = 'none';
-      outputEl.textContent = '⚠️ License ID must be numeric and the key must be exactly 16 characters.';
-      return;
+  function decrypt(){
+    const encrypted=prompt('Paste encrypted Base64:');
+    const keyVal=document.getElementById('key').value.trim();
+    const outputEl=document.getElementById('output');
+    const btnCopy=document.getElementById('btnCopy');
+    btnCopy.style.display='none';
+    if(!encrypted||keyVal.length!==16){
+      return outputEl.textContent='⚠️ Missing encrypted text or key (16 chars).';
     }
-
-    const ts = devMode && manualUnix
-      ? parseInt(manualUnix, 10)
-      : Math.floor(new Date().setMonth(new Date().getMonth() + months) / 1000);
-
-    const plaintext = `${num}|${ts}`;
-    lastEncryptedRaw = CryptoJS.AES.encrypt(plaintext, padKey(keyVal), {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.Pkcs7
-    }).toString();
-    lastEncryptedTelegram = '`' + lastEncryptedRaw + '`';
-    lastMode = 'encrypt';
-
-    outputEl.textContent =
-      `Encrypted:\n${lastEncryptedRaw}\n\nUnix Time: ${ts}\nDate: ${new Date(ts * 1000).toLocaleString()}`;
-    btnCopy.style.display = 'inline-block';
-  }
-
-  // Decrypt
-  function decrypt() {
-    const encrypted = prompt('Paste encrypted Base64:');
-    const keyVal = document.getElementById('key').value.trim();
-    const outputEl = document.getElementById('output');
-    const btnCopy = document.getElementById('btnCopy');
-    btnCopy.style.display = 'none';
-
-    if (!encrypted || keyVal.length !== 16) {
-      outputEl.textContent = '⚠️ Missing encrypted text or key (16 chars).';
-      return;
-    }
-
-    try {
-      const [num, ts] = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7
-      }).toString(CryptoJS.enc.Utf8).split('|');
-
-      lastMode = 'decrypt';
-      outputEl.textContent =
-        `Decrypted:\nLicense ID: ${num}\n\nUnix Time: ${ts}\nDate: ${new Date(parseInt(ts, 10) * 1000).toLocaleString()}`;
+    try{
+      const [num,ts]=CryptoJS.AES.decrypt(encrypted,padKey(keyVal),{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString(CryptoJS.enc.Utf8).split('|');
+      lastMode='decrypt';
+      outputEl.textContent=`Decrypted:\nLicense ID: ${num}\n\nUnix Time: ${ts}\nDate: ${new Date(parseInt(ts,10)*1000).toLocaleString()}`;
     } catch {
-      outputEl.textContent = '❌ Decryption failed. Check your key and input.';
+      outputEl.textContent='❌ Decryption failed. Check your key and input.';
     }
   }
 
-  // Copy raw encrypted
-  async function copyRaw() {
-    if (!lastEncryptedRaw) return;
-    try {
-      await navigator.clipboard.writeText(lastEncryptedRaw);
-      alert('✅ Raw copied!');
-    } catch {
-      alert('❌ Copy failed.');
-    }
+  async function copyRaw(){
+    if(!lastEncryptedRaw) return;
+    try{ await navigator.clipboard.writeText(lastEncryptedRaw); alert('✅ Raw copied!'); }
+    catch{ alert('❌ Copy failed.'); }
   }
 
-  // Click on output: Telegram or full
-  document.getElementById('output').addEventListener('click', async () => {
-    const txt = document.getElementById('output').textContent;
-    try {
-      if (lastMode === 'encrypt' && lastEncryptedTelegram) {
+  document.getElementById('output').addEventListener('click',async()=>{
+    const txt=document.getElementById('output').textContent;
+    try{
+      if(lastMode==='encrypt'&&lastEncryptedTelegram){
         await navigator.clipboard.writeText(lastEncryptedTelegram);
         alert('✅ Copied for Telegram!');
-      } else if (lastMode === 'decrypt' && txt) {
+      } else if(lastMode==='decrypt'&&txt){
         await navigator.clipboard.writeText(txt);
         alert('✅ Output copied!');
       }
-    } catch {
-      alert('❌ Copy failed.');
-    }
+    } catch { alert('❌ Copy failed.'); }
   });
 </script>
-
 </body>
 </html>
