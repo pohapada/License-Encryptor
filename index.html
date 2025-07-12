@@ -4,7 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>License Encryptor</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/License-Encryptor/manifest.json">
+  <!-- Favicon -->
+  <link rel="icon" href="/License-Encryptor/icon-192.png" type="image/png">
+  <!-- Local CryptoJS for offline -->
+  <script src="/License-Encryptor/crypto-js.min.js"></script>
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -72,7 +78,7 @@
     .btn-dev { background: #9ca3af; color: #fff; }
     .btn-copy { background: #6366f1; color: #fff; display: none; }
     .dark-toggle {
-      position: absolute;
+      position: fixed;
       top: 1rem; right: 1rem;
       width: 2.5rem; height: 2.5rem;
       border: none; border-radius: 50%;
@@ -83,6 +89,7 @@
       cursor: pointer;
       box-shadow: 0 2px 8px var(--shadow);
       transition: background 0.3s, transform 0.2s;
+      z-index: 10;
     }
     .dark-toggle:hover { transform: scale(1.1); }
     pre {
@@ -130,12 +137,30 @@
     <pre id="output"></pre>
   </div>
   <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/License-Encryptor/service-worker.js')
+        .then(() => console.log('✅ Service worker registered.'))
+        .catch(e => console.error('❌ SW registration failed:', e));
+    }
     let devMode=false, lastEncrypted='';
     function padKey(key){return CryptoJS.enc.Utf8.parse(key.padEnd(16,'\0').slice(0,16));}
     function toggleDev(){devMode=!devMode;document.getElementById('unixGroup').style.display=devMode?'block':'none';document.getElementById('btnDev').textContent=devMode?'🛠️ Dev Mode: ON':'🛠️ Dev Mode: OFF';}
-    function toggleDarkMode(){document.body.classList.toggle('dark');}
-    function encrypt(){const num=document.getElementById('number').value.trim(),months=parseInt(document.getElementById('duration').value),keyVal=document.getElementById('key').value.trim(),manualUnix=document.getElementById('manualUnix').value.trim(),outputEl=document.getElementById('output'),btnCopy=document.getElementById('btnCopy');if(!/^\d+$/.test(num)||keyVal.length!==16){btnCopy.style.display='none';return outputEl.textContent='⚠️ License ID باید فقط عدد باشد و کلید دقیقاً 16 کاراکتر.';}let ts=devMode&&manualUnix?parseInt(manualUnix):Math.floor(new Date(new Date().setMonth(new Date().getMonth()+months)).getTime()/1000);const plaintext=`${num}|${ts}`,key=padKey(keyVal);lastEncrypted=CryptoJS.AES.encrypt(plaintext,key,{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString();outputEl.textContent=`Encrypted:\n${lastEncrypted}\n\nUnix Time: ${ts}\nDate: ${new Date(ts*1000).toLocaleString()}`;btnCopy.style.display='inline-block';}
-    function decrypt(){const encrypted=prompt('Paste encrypted Base64:'),keyVal=document.getElementById('key').value.trim(),outputEl=document.getElementById('output'),btnCopy=document.getElementById('btnCopy');btnCopy.style.display='none';if(!encrypted||keyVal.length!==16)return outputEl.textContent='⚠️ Missing encrypted text or key (16 chars).';try{const arr=CryptoJS.AES.decrypt(encrypted,padKey(keyVal),{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString(CryptoJS.enc.Utf8).split('|');outputEl.textContent=`Decrypted:\nLicense ID: ${arr[0]}\n\nUnix Time: ${arr[1]}\nDate: ${new Date(parseInt(arr[1])*1000).toLocaleString()}`;}catch(e){outputEl.textContent='❌ Decryption failed. Check your key and input.';}}
+    function toggleDarkMode(){document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0');}
+    if(localStorage.getItem('dark')==='1'){document.body.classList.add('dark');}
+    function encrypt(){
+      const num=document.getElementById('number').value.trim(),months=parseInt(document.getElementById('duration').value),keyVal=document.getElementById('key').value.trim(),manualUnix=document.getElementById('manualUnix').value.trim(),outputEl=document.getElementById('output'),btnCopy=document.getElementById('btnCopy');
+      if(!/^[0-9]+$/.test(num)||keyVal.length!==16){btnCopy.style.display='none';return outputEl.textContent='⚠️ License ID باید فقط عدد باشد و کلید دقیقاً 16 کاراکتر.';}
+      let ts=devMode&&manualUnix?parseInt(manualUnix):Math.floor(new Date(new Date().setMonth(new Date().getMonth()+months)).getTime()/1000);
+      const plaintext=`${num}|${ts}`,key=padKey(keyVal);
+      lastEncrypted=CryptoJS.AES.encrypt(plaintext,key,{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString();
+      outputEl.textContent=`Encrypted:\n${lastEncrypted}\n\nUnix Time: ${ts}\nDate: ${new Date(ts*1000).toLocaleString()}`;
+      btnCopy.style.display='inline-block';
+    }
+    function decrypt(){
+      const encrypted=prompt('Paste encrypted Base64:'),keyVal=document.getElementById('key').value.trim(),outputEl=document.getElementById('output'),btnCopy=document.getElementById('btnCopy');
+      btnCopy.style.display='none';if(!encrypted||keyVal.length!==16)return outputEl.textContent='⚠️ Missing encrypted text or key (16 chars).';
+      try{const arr=CryptoJS.AES.decrypt(encrypted,padKey(keyVal),{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString(CryptoJS.enc.Utf8).split('|');outputEl.textContent=`Decrypted:\nLicense ID: ${arr[0]}\n\nUnix Time: ${arr[1]}\nDate: ${new Date(parseInt(arr[1])*1000).toLocaleString()}`;}catch(e){outputEl.textContent='❌ Decryption failed. Check your key and input.';}}
     async function copyOutput(){if(!lastEncrypted)return;try{await navigator.clipboard.writeText(lastEncrypted);alert('✅ Copied!');}catch{alert('❌ Copy failed. شاید مرورگر اجازه نداده.');}}
   </script>
 </body>
