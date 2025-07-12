@@ -1,11 +1,10 @@
-// service-worker.js
 const CACHE_NAME = 'encryptor-cache-v1';
 const FILES_TO_CACHE = [
-  './',               // معادل index.html
+  './',
   './index.html',
   './crypto-js.min.js',
-  './icon.png',       // آیکن 192×192
-  './icon-512.png',   // آیکن 512×512
+  './icon.png',
+  './icon-512.png',
   './manifest.json'
 ];
 
@@ -19,12 +18,8 @@ self.addEventListener('install', evt => {
 
 self.addEventListener('activate', evt => {
   evt.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(key => {
-        if (key !== CACHE_NAME) {
-          return caches.delete(key);
-        }
-      }))
+    caches.keys().then(keyList =>
+      Promise.all(keyList.map(key => key !== CACHE_NAME && caches.delete(key)))
     )
   );
   self.clients.claim();
