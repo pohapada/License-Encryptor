@@ -3,7 +3,7 @@ const FILES_TO_CACHE = [
   '/License-Encryptor/',
   '/License-Encryptor/index.html',
   '/License-Encryptor/crypto-js.min.js',
-  '/License-Encryptor/icon-192.png',
+  '/License-Encryptor/icon.png',
   '/License-Encryptor/icon-512.png',
   '/License-Encryptor/manifest.json'
 ];
