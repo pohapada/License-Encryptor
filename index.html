@@ -2,39 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>License Encryptor</title>
-  
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon.png" sizes="192x192" type="image/png">
-  <link rel="apple-touch-icon" href="icon.png" sizes="192x192">
-  
-  <!-- CryptoJS (CDN) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced License Encryptor</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #2563eb;
+      --primary: #3b82f6;
+      --primary-light: #93c5fd;
       --secondary: #10b981;
+      --secondary-light: #6ee7b7;
       --gray: #f3f4f6;
+      --dark-gray: #e5e7eb;
       --text: #1f2937;
+      --text-light: #6b7280;
       --card-bg: #ffffff;
-      --shadow: rgba(0, 0, 0, 0.05);
+      --shadow: rgba(0, 0, 0, 0.08);
       --error: #ef4444;
-      --toggle-bg: #e5e7eb;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --card-border: rgba(0, 0, 0, 0.05);
+      --card-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      --transition: all 0.3s ease;
     }
     
     body.dark {
       --primary: #60a5fa;
+      --primary-light: #1e3a8a;
       --secondary: #34d399;
-      --gray: #1f2937;
+      --secondary-light: #065f46;
+      --gray: #111827;
+      --dark-gray: #1f2937;
       --text: #f3f4f6;
-      --card-bg: #111827;
+      --text-light: #9ca3af;
+      --card-bg: #1e293b;
       --shadow: rgba(255, 255, 255, 0.05);
       --error: #f87171;
-      --toggle-bg: #374151;
+      --warning: #fbbf24;
+      --success: #34d399;
+      --card-border: rgba(255, 255, 255, 0.05);
+      --card-gradient: linear-gradient(135deg, #0c1d2f 0%, #1a2b3e 100%);
     }
     
     * {
@@ -45,155 +52,222 @@
     
     html, body {
       height: 100%;
-      font-family: 'Inter', sans-serif;
-    }
-    
-    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: var(--gray);
       color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      transition: background .3s, color .3s;
-      background-image: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 20%),
-                       radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 20%);
+      transition: var(--transition);
+      background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 25%),
+                       radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 25%);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
     }
     
     body.dark {
-      background-image: radial-gradient(circle at 10% 20%, rgba(96, 165, 250, 0.1) 0%, transparent 20%),
-                       radial-gradient(circle at 90% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 20%);
+      background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 25%),
+                       radial-gradient(circle at 90% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 25%);
+    }
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
     }
     
     .card {
       background: var(--card-bg);
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 25px var(--shadow);
+      border-radius: 20px;
+      box-shadow: 0 15px 35px var(--shadow);
       width: 100%;
-      max-width: 480px;
-      padding: 2.5rem 2rem;
-      animation: fadeIn .6s ease-out;
+      max-width: 500px;
+      padding: 30px;
       position: relative;
       overflow: hidden;
       z-index: 1;
+      border: 1px solid var(--card-border);
+      background-image: var(--card-gradient);
+      animation: cardAppear 0.8s cubic-bezier(0.23, 1, 0.32, 1);
     }
     
-    .card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
-      opacity: 0.05;
-      z-index: -1;
-      pointer-events: none;
+    @keyframes cardAppear {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
     
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+      position: relative;
     }
     
-    h1 {
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+    
+    .logo-container:hover {
+      transform: translateY(-3px);
+    }
+    
+    .logo {
+      width: 50px;
+      height: 50px;
+      background: var(--primary);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .logo i {
+      font-size: 24px;
+      color: white;
+    }
+    
+    h1 {
+      font-size: 28px;
       font-weight: 700;
-      margin-bottom: 1.8rem;
       color: var(--primary);
       text-align: center;
+      margin: 0;
     }
     
     .form-group {
-      margin-bottom: 1.5rem;
-      animation: slideIn 0.4s ease-out;
+      margin-bottom: 25px;
+      animation: slideIn 0.5s ease-out;
       animation-fill-mode: backwards;
     }
     
     @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-10px); }
+      from { opacity: 0; transform: translateX(-15px); }
       to { opacity: 1; transform: translateX(0); }
     }
-    
-    .form-group:nth-child(2) { animation-delay: 0.1s; }
-    .form-group:nth-child(3) { animation-delay: 0.2s; }
-    .form-group:nth-child(4) { animation-delay: 0.3s; }
     
     label {
       display: block;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 10px;
       color: var(--text);
-      opacity: 0.9;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .input-group {
+      position: relative;
     }
     
     input, select {
       width: 100%;
-      padding: 0.9rem 1.2rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.75rem;
-      background: var(--card-bg);
-      font-size: 1rem;
-      transition: all 0.3s ease;
+      padding: 14px 50px 14px 18px;
+      border: 1px solid var(--dark-gray);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 16px;
+      transition: var(--transition);
       color: var(--text);
-      box-shadow: 0 2px 5px var(--shadow);
-    }
-    
-    body.dark input, body.dark select {
-      border-color: #374151;
+      box-shadow: 0 3px 10px var(--shadow);
     }
     
     input:focus, select:focus {
       border-color: var(--primary);
       outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
     
-    body.dark input:focus, body.dark select:focus {
-      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+    .input-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-light);
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .input-icon:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--primary);
     }
     
     .error-message {
       color: var(--error);
-      font-size: 0.85rem;
-      margin-top: 0.4rem;
+      font-size: 14px;
+      margin-top: 8px;
       display: none;
     }
     
     .btn-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 1.5rem;
+      gap: 12px;
+      margin-top: 25px;
     }
     
     button {
       flex: 1 1 48%;
-      padding: 0.9rem;
+      padding: 14px;
       border: none;
-      border-radius: 0.75rem;
+      border-radius: 12px;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 16px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: var(--transition);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      gap: 10px;
+      box-shadow: 0 5px 15px var(--shadow);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
     }
     
     button:hover {
       transform: translateY(-3px);
-      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 20px var(--shadow);
     }
     
     button:active {
       transform: translateY(1px);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 3px 10px var(--shadow);
     }
     
     .btn-encrypt {
@@ -206,259 +280,301 @@
       color: #fff;
     }
     
-    .btn-dev {
-      background: #9ca3af;
-      color: #fff;
-    }
-    
     .btn-copy {
-      background: #6366f1;
+      background: #818cf8;
       color: #fff;
       display: none;
     }
     
-    /* New toggle buttons design */
-    .toggle-group {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      display: flex;
-      gap: 0.75rem;
-      z-index: 10;
+    .btn-disable-dev {
+      background: var(--warning);
+      color: white;
+      display: none;
     }
     
-    .toggle-btn {
-      width: 2.8rem;
-      height: 2.8rem;
-      border-radius: 50%;
+    /* Developer Mode Section */
+    .dev-mode-section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      border-left: 4px solid var(--warning);
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .dev-mode-section h3 {
       display: flex;
       align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      background: var(--toggle-bg);
-      box-shadow: 0 4px 8px var(--shadow);
-      transition: all 0.3s ease;
-      position: relative;
-      border: none;
+      gap: 10px;
+      color: var(--warning);
+      margin-bottom: 15px;
+      font-size: 18px;
     }
     
-    .toggle-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 12px var(--shadow);
-    }
-    
-    .toggle-btn:active {
-      transform: translateY(1px);
-    }
-    
-    .toggle-btn svg {
-      width: 1.4rem;
-      height: 1.4rem;
-      transition: all 0.3s ease;
-    }
-    
-    .dark-toggle svg path {
-      fill: var(--text);
-    }
-    
-    .lock-toggle svg path {
-      stroke: var(--text);
-      stroke-width: 2;
-    }
-    
-    .tooltip {
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--text);
-      color: var(--card-bg);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      white-space: nowrap;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.2s ease;
-      margin-top: 8px;
-      z-index: 100;
-    }
-    
-    .toggle-btn:hover .tooltip {
-      opacity: 1;
-      visibility: visible;
-    }
-    
+    /* Output Section */
     pre {
-      background: var(--card-bg);
-      padding: 1.2rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
       border-left: 4px solid var(--primary);
-      border-radius: 0.75rem;
-      margin-top: 1.5rem;
-      font-size: 0.9rem;
+      border-radius: 12px;
+      margin-top: 25px;
+      font-size: 15px;
       white-space: pre-wrap;
       color: var(--text);
       font-family: 'Courier New', monospace;
       cursor: pointer;
-      box-shadow: 0 4px 6px var(--shadow);
-      transition: all 0.3s ease;
-      max-height: 200px;
+      box-shadow: 0 5px 15px var(--shadow);
+      transition: var(--transition);
+      max-height: 250px;
       overflow-y: auto;
-      line-height: 1.5;
+      line-height: 1.6;
     }
     
     pre:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 10px var(--shadow);
+      box-shadow: 0 8px 20px var(--shadow);
     }
     
     pre.success {
-      border-left-color: var(--secondary);
+      border-left-color: var(--success);
     }
     
     pre.error {
       border-left-color: var(--error);
     }
     
+    /* Status Indicators */
     .status {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      opacity: 0.8;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.9;
     }
     
-    @media (max-width: 480px) {
-      button {
-        flex: 1 1 100%;
-      }
-      
-      .card {
-        padding: 1.8rem 1.5rem;
-      }
-      
-      .toggle-group {
-        top: 0.8rem;
-        right: 0.8rem;
-      }
-      
-      .toggle-btn {
-        width: 2.5rem;
-        height: 2.5rem;
-      }
+    /* Theme Toggle */
+    .theme-toggle {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: var(--gray);
+      box-shadow: 0 5px 15px var(--shadow);
+      transition: var(--transition);
+      z-index: 10;
+    }
+    
+    .theme-toggle:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 20px var(--shadow);
+    }
+    
+    /* Tap Counter */
+    .tap-counter {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: var(--warning);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.3s ease;
+      z-index: 2;
+    }
+    
+    .tap-counter.show {
+      opacity: 1;
+      transform: scale(1);
     }
     
     /* Notification */
     .notification {
       position: fixed;
-      bottom: 20px;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--primary);
       color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 16px 32px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
       z-index: 1000;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 90%;
+      text-align: center;
+    }
+    
+    .notification.success {
+      background: var(--success);
+    }
+    
+    .notification.error {
+      background: var(--error);
+    }
+    
+    .notification.warning {
+      background: var(--warning);
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .card {
+        padding: 20px 15px;
+      }
+      
+      button {
+        flex: 1 1 100%;
+        padding: 12px;
+      }
+      
+      .theme-toggle {
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+    }
+    
+    .dev-hint {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--text-light);
+      text-align: center;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+    
+    .dev-hint.hidden {
+      opacity: 0;
+    }
+    
+    .key-status {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 14px;
+      gap: 8px;
     }
   </style>
 </head>
 <body>
 
-  <div class="toggle-group">
-    <button class="toggle-btn dark-toggle" onclick="toggleDarkMode()">
-      <!-- Sun/Moon SVG -->
-      <svg class="sun-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="tooltip">Toggle theme</span>
-    </button>
-    
-    <button class="toggle-btn lock-toggle" id="lockBtn" onclick="toggleLock()">
-      <!-- Lock/Unlock SVG -->
-      <svg class="lock-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="tooltip">Lock key</span>
-    </button>
-  </div>
+  <div class="container">
+    <div class="card">
+      <div class="theme-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon"></i>
+      </div>
+      
+      <div class="card-header">
+        <div class="logo-container" id="logoLock">
+          <div class="logo">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h1>License Encryptor</h1>
+          <div class="tap-counter" id="tapCounter">0</div>
+        </div>
+        <div class="dev-hint" id="devHint">Tap lock icon 10 times to activate Developer Mode</div>
+      </div>
 
-  <div class="card">
-    <h1>
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
-        <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      License Encryptor
-    </h1>
+      <div class="form-group">
+        <label for="number"><i class="fas fa-id-card"></i> License ID</label>
+        <input id="number" type="text" placeholder="e.g., 123456789" autocomplete="off">
+        <div class="error-message" id="numberError">Please enter a valid numeric License ID</div>
+      </div>
 
-    <div class="form-group">
-      <label for="number">License ID</label>
-      <input id="number" type="text" placeholder="e.g., 123456789" autocomplete="off">
-      <div class="error-message" id="numberError">Please enter a valid numeric License ID</div>
-    </div>
+      <div class="form-group" id="durationGroup">
+        <label for="duration"><i class="fas fa-calendar-alt"></i> Duration</label>
+        <select id="duration">
+          <option value="1">1 Month</option>
+          <option value="3">3 Months</option>
+          <option value="6">6 Months</option>
+          <option value="9">9 Months</option>
+          <option value="12" selected>12 Months</option>
+        </select>
+      </div>
 
-    <div class="form-group">
-      <label for="duration">Duration</label>
-      <select id="duration">
-        <option value="1">1 Month</option>
-        <option value="3">3 Months</option>
-        <option value="6">6 Months</option>
-        <option value="9">9 Months</option>
-        <option value="12" selected>12 Months</option>
-      </select>
-    </div>
+      <div class="form-group" id="unixGroup" style="display:none;">
+        <label for="manualUnix"><i class="fas fa-clock"></i> Custom Unix Time</label>
+        <input id="manualUnix" type="number" placeholder="Optional for testing" autocomplete="off">
+      </div>
 
-    <div class="form-group">
-      <label for="key">Encryption Key (16 characters)</label>
-      <input id="key" type="password" maxlength="16" placeholder="Enter 16-character key" autocomplete="off">
-      <div class="error-message" id="keyError">Key must be exactly 16 characters</div>
-      <div class="status" id="keyStatus">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        <span>Key not entered</span>
+      <div class="form-group">
+        <label for="key"><i class="fas fa-key"></i> Encryption Key (16 characters)</label>
+        <div class="input-group">
+          <input id="key" type="password" maxlength="16" placeholder="Enter 16-character key" autocomplete="off">
+          <button class="input-icon" id="lockBtn" onclick="toggleKeyLock()">
+            <i class="fas fa-lock"></i>
+          </button>
+        </div>
+        <div class="error-message" id="keyError">Key must be exactly 16 characters</div>
+        <div class="key-status" id="keyStatus">
+          <i class="fas fa-circle"></i>
+          <span>Key not entered</span>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn-encrypt" onclick="encrypt()">
+          <i class="fas fa-lock"></i>
+          Encrypt
+        </button>
+        
+        <button class="btn-decrypt" onclick="decrypt()">
+          <i class="fas fa-unlock"></i>
+          Decrypt
+        </button>
+        
+        <button class="btn-copy" onclick="copyRaw()" id="btnCopy">
+          <i class="fas fa-copy"></i>
+          Copy Raw
+        </button>
+        
+        <button class="btn-disable-dev" onclick="disableDeveloperMode()" id="btnDisableDev">
+          <i class="fas fa-times-circle"></i>
+          Disable Dev Mode
+        </button>
+      </div>
+
+      <pre id="output">🔒 Your encrypted or decrypted results will appear here. Click to copy.</pre>
+      
+      <div class="dev-mode-section" id="devInfo">
+        <h3>
+          <i class="fas fa-flask"></i>
+          Developer Mode Active
+        </h3>
+        <p>You can now set custom Unix timestamps. Duration selection is hidden.</p>
       </div>
     </div>
-
-    <div class="form-group" id="unixGroup" style="display:none;">
-      <label for="manualUnix">Custom Unix Time (Dev Mode)</label>
-      <input id="manualUnix" type="number" placeholder="Optional for testing" autocomplete="off">
-    </div>
-
-    <div class="btn-group">
-      <button class="btn-encrypt" onclick="encrypt()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Encrypt
-      </button>
-      
-      <button class="btn-decrypt" onclick="decrypt()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Decrypt
-      </button>
-      
-      <button class="btn-dev" onclick="toggleDev()" id="btnDev">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10 20L14 4M12.5 15H19.5M6.5 9H11.5M7 15L10 9M17 9L14 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Dev Mode: OFF
-      </button>
-      
-      <button class="btn-copy" onclick="copyRaw()" id="btnCopy">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M10 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8H10C8.89543 8 8 8.89543 8 10V18C8 19.1046 8.89543 20 10 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Copy Raw
-      </button>
-    </div>
-
-    <pre id="output">Results will appear here. Click to copy.</pre>
   </div>
 
   <script>
@@ -466,103 +582,130 @@
     let lastEncryptedRaw = '';
     let lastEncryptedTelegram = '';
     let lastMode = '';
-    let isKeyLocked = false;
     let devMode = false;
+    let isKeyLocked = false;
+    let tapCount = 0;
+    let tapTimeout;
+    const maxTaps = 10;
+    const tapTimeWindow = 3000; // 3 seconds
 
-    // Register SW
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+    // Set theme based on system preference
+    function setSystemTheme() {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+        document.querySelector('.theme-toggle i').className = 'fas fa-sun';
+      } else {
+        document.body.classList.remove('dark');
+        document.querySelector('.theme-toggle i').className = 'fas fa-moon';
+      }
+      localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
     }
 
-    // Dark mode toggle
+    // Toggle dark mode
     function toggleDarkMode() {
       document.body.classList.toggle('dark');
       localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
-      updateDarkModeIcon();
-    }
-    
-    // Update dark mode icon based on current theme
-    function updateDarkModeIcon() {
-      const isDark = document.body.classList.contains('dark');
-      const darkToggle = document.querySelector('.dark-toggle');
       
-      if (isDark) {
-        darkToggle.innerHTML = `
-          <svg class="sun-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="tooltip">Switch to light mode</span>
-        `;
+      // Update icon
+      const icon = document.querySelector('.theme-toggle i');
+      if (document.body.classList.contains('dark')) {
+        icon.className = 'fas fa-sun';
       } else {
-        darkToggle.innerHTML = `
-          <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20.3542 15.3542C19.3176 15.7708 18.1856 16.0001 17 16.0001C12.0294 16.0001 8 11.9706 8 7.00006C8 5.81449 8.22924 4.68246 8.64581 3.64587C5.33648 4.9758 3 8.21507 3 12.0001C3 16.9706 7.02944 21.0001 12 21.0001C15.785 21.0001 19.0243 18.6636 20.3542 15.3542Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="tooltip">Switch to dark mode</span>
-        `;
+        icon.className = 'fas fa-moon';
       }
     }
-    
-    // Apply saved dark mode preference
-    if (localStorage.getItem('dark') === '1') {
-      document.body.classList.add('dark');
-    }
-    updateDarkModeIcon();
 
-    // Dev & lock toggle
-    function toggleDev() {
-      devMode = !devMode;
-      document.getElementById('unixGroup').style.display = devMode ? 'block' : 'none';
-      const lockBtn = document.getElementById('lockBtn');
-      lockBtn.style.display = devMode ? 'flex' : 'none';
-      document.getElementById('btnDev').textContent = devMode ? 'Dev Mode: ON' : 'Dev Mode: OFF';
-    }
-    
-    function toggleLock() {
+    // Toggle key lock
+    function toggleKeyLock() {
       isKeyLocked = !isKeyLocked;
-      const keyInput = document.getElementById('key');
-      keyInput.disabled = isKeyLocked;
-      
       const lockBtn = document.getElementById('lockBtn');
+      const keyInput = document.getElementById('key');
+      
       if (isKeyLocked) {
-        lockBtn.innerHTML = `
-          <svg class="lock-open-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="tooltip">Unlock key</span>
-        `;
+        lockBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
+        keyInput.disabled = true;
+        showNotification('🔓 Key input unlocked', 'warning');
       } else {
-        lockBtn.innerHTML = `
-          <svg class="lock-closed-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="tooltip">Lock key</span>
-        `;
+        lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
+        keyInput.disabled = false;
+        showNotification('🔒 Key input locked', 'warning');
       }
     }
 
-    // Key status indicator
-    const keyInput = document.getElementById('key');
-    keyInput.addEventListener('input', updateKeyStatus);
-    
-    function updateKeyStatus() {
-      const keyValue = keyInput.value.trim();
-      const keyStatus = document.getElementById('keyStatus');
-      const statusIcon = keyStatus.querySelector('svg');
-      const statusText = keyStatus.querySelector('span');
+    // Tap counter for Developer Mode activation
+    function setupTapCounter() {
+      const logoLock = document.getElementById('logoLock');
+      const tapCounter = document.getElementById('tapCounter');
+      const devHint = document.getElementById('devHint');
       
-      if (keyValue.length === 0) {
-        statusIcon.innerHTML = '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>';
-        statusText.textContent = 'Key not entered';
-        statusText.style.color = '';
-      } else if (keyValue.length === 16) {
-        statusIcon.innerHTML = '<path d="M9 12L11 14L15 10M12 3C13.5913 3 15.1174 3.63214 16.2426 4.75736C17.3679 5.88258 18 7.4087 18 9C18 10.5913 17.3679 12.1174 16.2426 13.2426C15.1174 14.3679 13.5913 15 12 15C10.4087 15 8.88258 14.3679 7.75736 13.2426C6.63214 12.1174 6 10.5913 6 9C6 7.4087 6.63214 5.88258 7.75736 4.75736C8.88258 3.63214 10.4087 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-        statusText.textContent = 'Key is valid';
-        statusText.style.color = 'var(--secondary)';
+      // Hide hint after 5 seconds
+      setTimeout(() => {
+        devHint.classList.add('hidden');
+      }, 5000);
+      
+      logoLock.addEventListener('click', function() {
+        tapCount++;
+        
+        // Only show at 5 and 10 taps
+        if (tapCount === 5 || tapCount === 10) {
+          tapCounter.textContent = tapCount;
+          tapCounter.classList.add('show');
+          
+          if (tapCount === 5) {
+            showNotification('5 taps - halfway to Developer Mode', 'warning');
+          }
+          
+          // Hide after 1.5 seconds
+          setTimeout(() => {
+            tapCounter.classList.remove('show');
+          }, 1500);
+        }
+        
+        // Reset timer
+        clearTimeout(tapTimeout);
+        tapTimeout = setTimeout(() => {
+          tapCount = 0;
+        }, tapTimeWindow);
+        
+        // Check if reached max taps
+        if (tapCount >= maxTaps) {
+          activateDeveloperMode();
+          tapCount = 0;
+        }
+      });
+    }
+
+    // Activate Developer Mode
+    function activateDeveloperMode() {
+      devMode = true;
+      updateDeveloperModeUI();
+      showNotification('🛠️ Developer Mode Activated!', 'warning');
+    }
+
+    // Disable Developer Mode
+    function disableDeveloperMode() {
+      devMode = false;
+      updateDeveloperModeUI();
+      showNotification('🛠️ Developer Mode Deactivated', 'warning');
+    }
+
+    // Update Developer Mode UI
+    function updateDeveloperModeUI() {
+      const devInfo = document.getElementById('devInfo');
+      const durationGroup = document.getElementById('durationGroup');
+      const unixGroup = document.getElementById('unixGroup');
+      const btnDisableDev = document.getElementById('btnDisableDev');
+      
+      if (devMode) {
+        devInfo.style.display = 'block';
+        durationGroup.style.display = 'none';
+        unixGroup.style.display = 'block';
+        btnDisableDev.style.display = 'flex';
       } else {
-        statusIcon.innerHTML = '<path d="M12 8V12M12 16H12.01M21 12C21 13.1819 20.7672 14.3522 20.3149 15.4442C19.8626 16.5361 19.1997 17.5282 18.364 18.364C17.5282 19.1997 16.5361 19.8626 15.4442 20.3149C14.3522 20.7672 13.1819 21 12 21C10.8181 21 9.64778 20.7672 8.55585 20.3149C7.46392 19.8626 6.47177 19.1997 5.63604 18.364C4.80031 17.5282 4.13738 16.5361 3.68508 15.4442C3.23279 14.3522 3 13.1819 3 12C3 9.61305 3.94821 7.32387 5.63604 5.63604C7.32387 3.94821 9.61305 3 12 3C14.3869 3 16.6761 3.94821 18.364 5.63604C20.0518 7.32387 21 9.61305 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-        statusText.textContent = `Key too short (${keyValue.length}/16)`;
-        statusText.style.color = 'var(--error)';
+        devInfo.style.display = 'none';
+        durationGroup.style.display = 'block';
+        unixGroup.style.display = 'none';
+        btnDisableDev.style.display = 'none';
       }
     }
 
@@ -622,7 +765,7 @@
         lastMode = 'encrypt';
         
         const dateStr = new Date(ts * 1000).toLocaleString();
-        outputEl.textContent = `✅ Encrypted Successfully!\n\n🔑 Encrypted Key:\n${lastEncryptedRaw}\n\n⏰ Expiration:\n${dateStr} (Unix: ${ts})`;
+        outputEl.textContent = `✅ ENCRYPTED SUCCESSFULLY\n\n🔑 Encrypted License Key:\n${lastEncryptedRaw}\n\n⏰ Expiration Date:\n${dateStr}\n\n⌛ Unix Timestamp: ${ts}`;
         outputEl.classList.add('success');
         btnCopy.style.display = 'inline-block';
         
@@ -670,8 +813,11 @@
         }
         
         const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
-        outputEl.textContent = `✅ Decrypted Successfully!\n\n🔑 License ID: ${num}\n\n⏰ Expiration: ${dateStr}\n(Unix: ${ts})`;
-        outputEl.classList.add('success');
+        const currentTime = Math.floor(Date.now() / 1000);
+        const isExpired = parseInt(ts) < currentTime;
+        
+        outputEl.textContent = `✅ DECRYPTED SUCCESSFULLY\n\n🔑 License ID: ${num}\n\n⏰ Expiration: ${dateStr}\n⌛ Unix Timestamp: ${ts}\n\n${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
+        outputEl.classList.add(isExpired ? 'error' : 'success');
         
         // Auto-scroll to output
         outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -687,53 +833,69 @@
       
       try {
         await navigator.clipboard.writeText(lastEncryptedRaw);
-        showNotification('✅ Raw copied to clipboard!');
+        showNotification('✅ Raw license key copied to clipboard!', 'success');
       } catch {
-        showNotification('❌ Failed to copy');
+        showNotification('❌ Failed to copy', 'error');
       }
     }
 
-    // Output click handler
-    document.getElementById('output').addEventListener('click', async function() {
-      const txt = this.textContent;
-      
-      try {
-        if (lastMode === 'encrypt' && lastEncryptedTelegram) {
-          await navigator.clipboard.writeText(lastEncryptedTelegram);
-          showNotification('✅ Copied for Telegram!');
-        } else if (txt) {
-          await navigator.clipboard.writeText(txt);
-          showNotification('✅ Output copied to clipboard!');
-        }
-      } catch {
-        showNotification('❌ Copy failed');
-      }
-    });
-
     // Show notification
-    function showNotification(message) {
+    function showNotification(message, type = '') {
       const notification = document.createElement('div');
       notification.textContent = message;
-      notification.className = 'notification';
+      notification.className = `notification ${type}`;
       
       document.body.appendChild(notification);
       
       // Fade in
       setTimeout(() => {
         notification.style.opacity = '1';
+        notification.style.transform = 'translateX(-50%) translateY(0)';
       }, 10);
       
-      // Fade out and remove after 2 seconds
+      // Fade out and remove after 2.5 seconds
       setTimeout(() => {
         notification.style.opacity = '0';
+        notification.style.transform = 'translateX(-50%) translateY(20px)';
         setTimeout(() => {
           document.body.removeChild(notification);
         }, 300);
-      }, 2000);
+      }, 2500);
     }
 
-    // Initialize key status
-    updateKeyStatus();
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set theme based on system preference
+      setSystemTheme();
+      
+      // Set up Developer Mode tap counter
+      setupTapCounter();
+      
+      // Update key status on input
+      const keyInput = document.getElementById('key');
+      keyInput.addEventListener('input', function() {
+        const keyStatus = document.getElementById('keyStatus');
+        const statusIcon = keyStatus.querySelector('i');
+        const statusText = keyStatus.querySelector('span');
+        
+        if (this.value.length === 0) {
+          statusIcon.className = 'fas fa-circle';
+          statusIcon.style.color = '';
+          statusText.textContent = 'Key not entered';
+          statusText.style.color = '';
+        } else if (this.value.length === 16) {
+          statusIcon.className = 'fas fa-check-circle';
+          statusIcon.style.color = 'var(--success)';
+          statusText.textContent = 'Key is valid';
+          statusText.style.color = 'var(--success)';
+        } else {
+          statusIcon.className = 'fas fa-exclamation-circle';
+          statusIcon.style.color = 'var(--error)';
+          statusText.textContent = `Key too short (${this.value.length}/16)`;
+          statusText.style.color = 'var(--error)';
+        }
+      });
+    });
   </script>
 </body>
 </html>
