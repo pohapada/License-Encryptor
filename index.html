@@ -998,7 +998,23 @@
           statusText.style.color = 'var(--error)';
         }
       });
-      
+      // Click on the <pre> copies for Telegram if encrypt, otherwise copies entire output text
+document.getElementById('output').addEventListener('click', async function() {
+  const txt = this.textContent.trim();
+  let toCopy = txt;
+
+  if (lastMode === 'encrypt' && lastEncryptedTelegram) {
+    toCopy = lastEncryptedTelegram;  // includes backticks
+  }
+
+  try {
+    await navigator.clipboard.writeText(toCopy);
+    showNotification('✅ Copied to clipboard!', 'success');
+  } catch {
+    showNotification('❌ Copy failed', 'error');
+  }
+});
+
       // Check if we're in PWA mode
       isPWA = checkPWAMode();
       
