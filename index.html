@@ -3,9 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advanced License Encryptor</title>
+  <title>License Encryptor Pro</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
   <style>
     :root {
       --primary: #3b82f6;
@@ -145,6 +155,21 @@
       color: var(--primary);
       text-align: center;
       margin: 0;
+    }
+    
+    .install-banner {
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      padding: 10px 15px;
+      margin-top: 15px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .install-banner.show {
+      display: flex;
     }
     
     .form-group {
@@ -290,6 +315,11 @@
       background: var(--warning);
       color: white;
       display: none;
+    }
+    
+    .btn-install {
+      background: var(--success);
+      color: white;
     }
     
     /* Developer Mode Section */
@@ -485,10 +515,31 @@
       font-size: 14px;
       gap: 8px;
     }
+    
+    .offline-status {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: var(--success);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: none;
+      z-index: 100;
+    }
+    
+    .offline-status.offline {
+      background: var(--error);
+    }
   </style>
 </head>
 <body>
 
+  <div class="offline-status" id="offlineStatus">
+    <i class="fas fa-wifi"></i> Online
+  </div>
+  
   <div class="container">
     <div class="card">
       <div class="theme-toggle" onclick="toggleDarkMode()">
@@ -504,6 +555,11 @@
           <div class="tap-counter" id="tapCounter">0</div>
         </div>
         <div class="dev-hint" id="devHint">Tap lock icon 10 times to activate Developer Mode</div>
+        <div class="install-banner" id="installBanner">
+          <i class="fas fa-download"></i>
+          <span>Install this app for offline use</span>
+          <button class="btn-install" onclick="installPWA()">Install</button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -540,6 +596,10 @@
         <div class="key-status" id="keyStatus">
           <i class="fas fa-circle"></i>
           <span>Key not entered</span>
+        </div>
+        <div class="key-status" id="storageStatus" style="display: none;">
+          <i class="fas fa-save"></i>
+          <span>Key stored for offline use</span>
         </div>
       </div>
 
@@ -588,7 +648,9 @@
     let tapTimeout;
     const maxTaps = 10;
     const tapTimeWindow = 3000; // 3 seconds
-
+    let deferredPrompt;
+    let isPWA = false;
+    
     // Set theme based on system preference
     function setSystemTheme() {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -771,6 +833,13 @@
         
         // Auto-scroll to output
         outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Save key for offline use if in PWA mode
+        if (isPWA && keyVal.length === 16) {
+          localStorage.setItem('encryptionKey', keyVal);
+          document.getElementById('storageStatus').style.display = 'flex';
+          showNotification('🔑 Key saved for offline use', 'success');
+        }
       } catch (error) {
         outputEl.textContent = '❌ Encryption failed: ' + error.message;
         outputEl.classList.add('error');
@@ -862,6 +931,40 @@
         }, 300);
       }, 2500);
     }
+    
+    // PWA Installation
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showNotification('App installed successfully!', 'success');
+            document.getElementById('installBanner').classList.remove('show');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+    
+    // Check PWA mode
+    function checkPWAMode() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || 
+             (window.navigator.standalone) || 
+             (document.referrer.includes('android-app://'));
+    }
+    
+    // Update online status
+    function updateOnlineStatus() {
+      const statusEl = document.getElementById('offlineStatus');
+      if (navigator.onLine) {
+        statusEl.innerHTML = '<i class="fas fa-wifi"></i> Online';
+        statusEl.className = 'offline-status';
+      } else {
+        statusEl.innerHTML = '<i class="fas fa-plug"></i> Offline';
+        statusEl.className = 'offline-status offline';
+      }
+      statusEl.style.display = 'block';
+    }
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
@@ -895,6 +998,44 @@
           statusText.style.color = 'var(--error)';
         }
       });
+      
+      // Check if we're in PWA mode
+      isPWA = checkPWAMode();
+      
+      // Load saved key if in PWA mode
+      if (isPWA) {
+        const savedKey = localStorage.getItem('encryptionKey');
+        if (savedKey) {
+          document.getElementById('key').value = savedKey;
+          document.getElementById('storageStatus').style.display = 'flex';
+          keyInput.dispatchEvent(new Event('input'));
+        }
+      }
+      
+      // PWA installation prompt
+      window.addEventListener('beforeinstallprompt', (e) => {
+        if (!isPWA) {
+          e.preventDefault();
+          deferredPrompt = e;
+          document.getElementById('installBanner').classList.add('show');
+        }
+      });
+      
+      // Online/offline status
+      updateOnlineStatus();
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      }
     });
   </script>
 </body>
