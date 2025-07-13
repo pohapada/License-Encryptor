@@ -17,74 +17,359 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- CryptoJS (CDN) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root { --primary:#2563eb; --secondary:#10b981; --gray:#f3f4f6; --text:#1f2937; --card-bg:#ffffff; --shadow:rgba(0,0,0,0.05); }
-    body.dark { --primary:#60a5fa; --secondary:#34d399; --gray:#1f2937; --text:#f3f4f6; --card-bg:#111827; --shadow:rgba(255,255,255,0.05); }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    html,body{height:100%;}
+    :root {
+      --primary: #2563eb;
+      --secondary: #10b981;
+      --gray: #f3f4f6;
+      --text: #1f2937;
+      --card-bg: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.05);
+      --error: #ef4444;
+    }
+    
+    body.dark {
+      --primary: #60a5fa;
+      --secondary: #34d399;
+      --gray: #1f2937;
+      --text: #f3f4f6;
+      --card-bg: #111827;
+      --shadow: rgba(255, 255, 255, 0.05);
+      --error: #f87171;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+    }
+    
     body {
-      font-family:'Inter',sans-serif;
-      background:var(--gray); color:var(--text);
-      display:flex; align-items:center; justify-content:center;
-      padding:1rem; transition:background .3s,color .3s;
+      background: var(--gray);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      transition: background .3s, color .3s;
+      background-image: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 20%),
+                       radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 20%);
     }
+    
+    body.dark {
+      background-image: radial-gradient(circle at 10% 20%, rgba(96, 165, 250, 0.1) 0%, transparent 20%),
+                       radial-gradient(circle at 90% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 20%);
+    }
+    
     .card {
-      background:var(--card-bg); border-radius:1.5rem;
-      box-shadow:0 10px 25px var(--shadow);
-      width:100%; max-width:480px; padding:2rem;
-      animation:fadeIn .4s ease-out;
+      background: var(--card-bg);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px var(--shadow);
+      width: 100%;
+      max-width: 480px;
+      padding: 2.5rem 2rem;
+      animation: fadeIn .6s ease-out;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
     }
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0)}}
-    h1{display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin-bottom:1.5rem;color:var(--primary)}
-    h1 img{width:1.5rem;height:1.5rem;margin-right:0.5rem}
-    .form-group{margin-bottom:1rem}
-    label{display:block;font-weight:600;margin-bottom:.5rem}
-    input,select{
-      width:100%;padding:.75rem 1rem;border:1px solid #d1d5db;border-radius:.75rem;
-      background:#fff;font-size:1rem;transition:border-color .2s,background .3s;
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+      opacity: 0.05;
+      z-index: -1;
+      pointer-events: none;
     }
-    body.dark input,body.dark select{background:#1e293b;color:#f3f4f6;border-color:#374151}
-    input:focus,select:focus{border-color:var(--primary);outline:none}
-    .btn-group{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.25rem}
-    button{flex:1 1 48%;padding:.75rem;border:none;border-radius:.75rem;font-weight:600;font-size:1rem;cursor:pointer;transition:transform .2s}
-    button:hover{transform:translateY(-2px)}
-    .btn-encrypt{background:var(--primary);color:#fff}
-    .btn-decrypt{background:var(--secondary);color:#fff}
-    .btn-dev{background:#9ca3af;color:#fff}
-    .btn-copy{background:#6366f1;color:#fff;display:none}
-    .dark-toggle,.lock-toggle{
-      position:fixed;top:1rem;width:2.5rem;height:2.5rem;border:none;border-radius:50%;
-      background:var(--secondary);color:#fff;display:flex;align-items:center;justify-content:center;
-      cursor:pointer;box-shadow:0 2px 8px var(--shadow);transition:transform .2s;z-index:10;
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .dark-toggle{right:1rem}
-    .lock-toggle{right:4rem;display:none}
-    pre{
-      background:#f9fafb;padding:1rem;border-left:4px solid var(--primary);
-      border-radius:.75rem;margin-top:1.5rem;font-size:.9rem;white-space:pre-wrap;
-      color:var(--text);font-family:'Courier New',monospace;cursor:pointer;
+    
+    h1 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.8rem;
+      color: var(--primary);
+      text-align: center;
     }
-    body.dark pre{background:#1e293b}
-    @media(max-width:480px){button{flex:1 1 100%}}
-    /* Eye icon button reset */
-    .eye-btn{position:absolute;top:50%;right:0.75rem;transform:translateY(-50%);background:none;border:none;padding:0;width:1.25rem;height:1.25rem;cursor:pointer;}
-    .eye-btn svg{width:100%;height:100%;fill:var(--text);}
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      animation: slideIn 0.4s ease-out;
+      animation-fill-mode: backwards;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .form-group:nth-child(2) { animation-delay: 0.1s; }
+    .form-group:nth-child(3) { animation-delay: 0.2s; }
+    .form-group:nth-child(4) { animation-delay: 0.3s; }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      opacity: 0.9;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.75rem;
+      background: var(--card-bg);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      color: var(--text);
+      box-shadow: 0 2px 5px var(--shadow);
+    }
+    
+    body.dark input, body.dark select {
+      border-color: #374151;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    
+    body.dark input:focus, body.dark select:focus {
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+    }
+    
+    .error-message {
+      color: var(--error);
+      font-size: 0.85rem;
+      margin-top: 0.4rem;
+      display: none;
+    }
+    
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    
+    button {
+      flex: 1 1 48%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-encrypt {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-decrypt {
+      background: var(--secondary);
+      color: #fff;
+    }
+    
+    .btn-dev {
+      background: #9ca3af;
+      color: #fff;
+    }
+    
+    .btn-copy {
+      background: #6366f1;
+      color: #fff;
+      display: none;
+    }
+    
+    .dark-toggle, .lock-toggle {
+      position: fixed;
+      top: 1rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: none;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px var(--shadow);
+      transition: all 0.3s ease;
+      z-index: 10;
+      font-size: 1.2rem;
+    }
+    
+    .dark-toggle {
+      right: 1rem;
+      background: var(--primary);
+    }
+    
+    .lock-toggle {
+      right: 4rem;
+      display: none;
+    }
+    
+    pre {
+      background: var(--card-bg);
+      padding: 1.2rem;
+      border-left: 4px solid var(--primary);
+      border-radius: 0.75rem;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      box-shadow: 0 4px 6px var(--shadow);
+      transition: all 0.3s ease;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+    
+    pre:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 10px var(--shadow);
+    }
+    
+    pre.success {
+      border-left-color: var(--secondary);
+    }
+    
+    pre.error {
+      border-left-color: var(--error);
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    @media (max-width: 480px) {
+      button {
+        flex: 1 1 100%;
+      }
+      
+      .card {
+        padding: 1.8rem 1.5rem;
+      }
+    }
+    
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 140px;
+      background-color: var(--text);
+      color: var(--card-bg);
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.8rem;
+    }
+    
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* Notification */
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
   </style>
 </head>
 <body>
 
-  <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
-  <button class="lock-toggle" id="lockBtn" onclick="toggleLock()">🔒</button>
+  <button class="dark-toggle tooltip" onclick="toggleDarkMode()">
+    🌓
+    <span class="tooltip-text">Toggle dark mode</span>
+  </button>
+  
+  <button class="lock-toggle tooltip" id="lockBtn" onclick="toggleLock()">
+    🔒
+    <span class="tooltip-text">Lock/Unlock key</span>
+  </button>
 
   <div class="card">
-    <h1><img src="icon.png" alt="Logo">License Encryptor</h1>
+    <h1>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
+        <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      License Encryptor
+    </h1>
 
     <div class="form-group">
       <label for="number">License ID</label>
-      <input id="number" type="text" placeholder="e.g., 123456789">
+      <input id="number" type="text" placeholder="e.g., 123456789" autocomplete="off">
+      <div class="error-message" id="numberError">Please enter a valid numeric License ID</div>
     </div>
 
     <div class="form-group">
@@ -94,158 +379,293 @@
         <option value="3">3 Months</option>
         <option value="6">6 Months</option>
         <option value="9">9 Months</option>
-        <option value="12">12 Months</option>
+        <option value="12" selected>12 Months</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label for="key">Encryption Key (16 chars)</label>
-      <div style="position:relative;">
-        <input id="key" type="password" maxlength="16" placeholder="16-character key" style="padding-right:2.5rem;" />
-        <button class="eye-btn" id="toggleKeyVis" aria-label="Show or hide key">
-          <!-- eye open -->
-          <svg id="eyeOpen" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5zm0-9a3.5 3.5 0 100 7 3.5 3.5 0 000-7z"/>
-          </svg>
-          <!-- eye closed -->
-          <svg id="eyeClosed" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none;">
-            <path d="M12 6.5c2.89 0 5.33 1.71 6.5 4.25-1.17 2.54-3.61 4.25-6.5 4.25s-5.33-1.71-6.5-4.25C6.67 8.21 9.11 6.5 12 6.5m0-2c-3.91 0-7.23 2.24-8.94 5.5 1.71 3.26 5.03 5.5 8.94 5.5s7.23-2.24 8.94-5.5C19.23 6.74 15.91 4.5 12 4.5zM12 9a3 3 0 013 3c0 .34-.06.66-.17.96l3.54 3.54-1.41 1.41L12 14.41l-3.96 3.96-1.41-1.41L10.59 12l-3.96-3.96 1.41-1.41L12 9z"/>
-          </svg>
-        </button>
+      <label for="key">Encryption Key (16 characters)</label>
+      <input id="key" type="password" maxlength="16" placeholder="Enter 16-character key" autocomplete="off">
+      <div class="error-message" id="keyError">Key must be exactly 16 characters</div>
+      <div class="status" id="keyStatus">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>Key not entered</span>
       </div>
     </div>
 
     <div class="form-group" id="unixGroup" style="display:none;">
       <label for="manualUnix">Custom Unix Time (Dev Mode)</label>
-      <input id="manualUnix" type="number" placeholder="Optional for testing">
+      <input id="manualUnix" type="number" placeholder="Optional for testing" autocomplete="off">
     </div>
 
     <div class="btn-group">
-      <button class="btn-encrypt" onclick="encrypt()">🔐 Encrypt</button>
-      <button class="btn-decrypt" onclick="decrypt()">🔓 Decrypt</button>
-      <button class="btn-dev" onclick="toggleDev()" id="btnDev">🛠️ Dev Mode: OFF</button>
-      <button class="btn-copy" onclick="copyRaw()" id="btnCopy">📋 Copy Raw</button>
+      <button class="btn-encrypt" onclick="encrypt()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Encrypt
+      </button>
+      
+      <button class="btn-decrypt" onclick="decrypt()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Decrypt
+      </button>
+      
+      <button class="btn-dev" onclick="toggleDev()" id="btnDev">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 20L14 4M12.5 15H19.5M6.5 9H11.5M7 15L10 9M17 9L14 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Dev Mode: OFF
+      </button>
+      
+      <button class="btn-copy" onclick="copyRaw()" id="btnCopy">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M10 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8H10C8.89543 8 8 8.89543 8 10V18C8 19.1046 8.89543 20 10 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Copy Raw
+      </button>
     </div>
 
-    <pre id="output">Click to copy for Telegram or Raw</pre>
+    <pre id="output">Results will appear here. Click to copy.</pre>
   </div>
 
-<script>
-  let lastEncryptedRaw = '', lastEncryptedTelegram = '', lastMode = '';
-  let isKeyLocked = false;
+  <script>
+    // Initialize variables
+    let lastEncryptedRaw = '';
+    let lastEncryptedTelegram = '';
+    let lastMode = '';
+    let isKeyLocked = false;
+    let devMode = false;
 
-  // Register SW
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-  }
+    // Register SW
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
 
-  // Dark mode
-  function toggleDarkMode() {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('dark', document.body.classList.contains('dark')?'1':'0');
-  }
-  if (localStorage.getItem('dark')==='1') document.body.classList.add('dark');
+    // Dark mode toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
+    }
+    
+    // Apply saved dark mode preference
+    if (localStorage.getItem('dark') === '1') {
+      document.body.classList.add('dark');
+    }
 
-  // Dev & lock
-  let devMode = false;
-  function toggleDev() {
-    devMode = !devMode;
-    document.getElementById('unixGroup').style.display = devMode?'block':'none';
-    const lockBtn = document.getElementById('lockBtn');
-    lockBtn.style.display = devMode?'flex':'none';
-    document.getElementById('btnDev').textContent = devMode?'🛠️ Dev Mode: ON':'🛠️ Dev Mode: OFF';
-  }
-  function toggleLock() {
-    isKeyLocked = !isKeyLocked;
+    // Dev & lock toggle
+    function toggleDev() {
+      devMode = !devMode;
+      document.getElementById('unixGroup').style.display = devMode ? 'block' : 'none';
+      const lockBtn = document.getElementById('lockBtn');
+      lockBtn.style.display = devMode ? 'flex' : 'none';
+      document.getElementById('btnDev').textContent = devMode ? 'Dev Mode: ON' : 'Dev Mode: OFF';
+    }
+    
+    function toggleLock() {
+      isKeyLocked = !isKeyLocked;
+      const keyInput = document.getElementById('key');
+      keyInput.disabled = isKeyLocked;
+      document.getElementById('lockBtn').textContent = isKeyLocked ? '🔓' : '🔒';
+    }
+
+    // Key status indicator
     const keyInput = document.getElementById('key');
-    keyInput.disabled = isKeyLocked;
-    document.getElementById('lockBtn').textContent = isKeyLocked?'🔓':'🔒';
-  }
-
-  // Eye toggle
-  document.getElementById('toggleKeyVis').addEventListener('click',()=>{
-    const ki = document.getElementById('key');
-    const open = document.getElementById('eyeOpen');
-    const closed = document.getElementById('eyeClosed');
-    if(ki.type==='password'){
-      ki.type='text';
-      open.style.display='none';
-      closed.style.display='block';
-    } else {
-      ki.type='password';
-      open.style.display='block';
-      closed.style.display='none';
-    }
-  });
-
-  // Persist key in PWA
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-    const keyInput = document.getElementById('key');
-    const stored = localStorage.getItem('cryptoKey');
-    if (stored) keyInput.value = stored;
-    keyInput.addEventListener('input', e => {
-      if (!isKeyLocked) localStorage.setItem('cryptoKey', e.target.value);
-    });
-  }
-
-  function padKey(k){ return CryptoJS.enc.Utf8.parse(k.padEnd(16,'\0').slice(0,16)); }
-
-  function encrypt(){
-    const num=document.getElementById('number').value.trim();
-    const months=parseInt(document.getElementById('duration').value,10);
-    const keyVal=document.getElementById('key').value.trim();
-    const manualUnix=document.getElementById('manualUnix').value.trim();
-    const outputEl=document.getElementById('output');
-    const btnCopy=document.getElementById('btnCopy');
-    if(!/^\d+$/.test(num)||keyVal.length!==16){
-      btnCopy.style.display='none';
-      return outputEl.textContent='⚠️ License ID must be numeric and the key must be exactly 16 characters.';
-    }
-    const ts=devMode&&manualUnix?parseInt(manualUnix,10):Math.floor(new Date().setMonth(new Date().getMonth()+months)/1000);
-    const plaintext=`${num}|${ts}`;
-    lastEncryptedRaw=CryptoJS.AES.encrypt(plaintext,padKey(keyVal),{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString();
-    lastEncryptedTelegram='`'+lastEncryptedRaw+'`';
-    lastMode='encrypt';
-    outputEl.textContent=`Encrypted:\n${lastEncryptedRaw}\n\nUnix Time: ${ts}\nDate: ${new Date(ts*1000).toLocaleString()}`;
-    btnCopy.style.display='inline-block';
-  }
-
-  function decrypt(){
-    const encrypted=prompt('Paste encrypted Base64:');
-    const keyVal=document.getElementById('key').value.trim();
-    const outputEl=document.getElementById('output');
-    const btnCopy=document.getElementById('btnCopy');
-    btnCopy.style.display='none';
-    if(!encrypted||keyVal.length!==16){
-      return outputEl.textContent='⚠️ Missing encrypted text or key (16 chars).';
-    }
-    try{
-      const [num,ts]=CryptoJS.AES.decrypt(encrypted,padKey(keyVal),{mode:CryptoJS.mode.ECB,padding:CryptoJS.pad.Pkcs7}).toString(CryptoJS.enc.Utf8).split('|');
-      lastMode='decrypt';
-      outputEl.textContent=`Decrypted:\nLicense ID: ${num}\n\nUnix Time: ${ts}\nDate: ${new Date(parseInt(ts,10)*1000).toLocaleString()}`;
-    } catch {
-      outputEl.textContent='❌ Decryption failed. Check your key and input.';
-    }
-  }
-
-  async function copyRaw(){
-    if(!lastEncryptedRaw) return;
-    try{ await navigator.clipboard.writeText(lastEncryptedRaw); alert('✅ Raw copied!'); }
-    catch{ alert('❌ Copy failed.'); }
-  }
-
-  document.getElementById('output').addEventListener('click',async()=>{
-    const txt=document.getElementById('output').textContent;
-    try{
-      if(lastMode==='encrypt'&&lastEncryptedTelegram){
-        await navigator.clipboard.writeText(lastEncryptedTelegram);
-        alert('✅ Copied for Telegram!');
-      } else if(lastMode==='decrypt'&&txt){
-        await navigator.clipboard.writeText(txt);
-        alert('✅ Output copied!');
+    keyInput.addEventListener('input', updateKeyStatus);
+    
+    function updateKeyStatus() {
+      const keyValue = keyInput.value.trim();
+      const keyStatus = document.getElementById('keyStatus');
+      const statusIcon = keyStatus.querySelector('svg');
+      const statusText = keyStatus.querySelector('span');
+      
+      if (keyValue.length === 0) {
+        statusIcon.innerHTML = '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>';
+        statusText.textContent = 'Key not entered';
+        statusText.style.color = '';
+      } else if (keyValue.length === 16) {
+        statusIcon.innerHTML = '<path d="M9 12L11 14L15 10M12 3C13.5913 3 15.1174 3.63214 16.2426 4.75736C17.3679 5.88258 18 7.4087 18 9C18 10.5913 17.3679 12.1174 16.2426 13.2426C15.1174 14.3679 13.5913 15 12 15C10.4087 15 8.88258 14.3679 7.75736 13.2426C6.63214 12.1174 6 10.5913 6 9C6 7.4087 6.63214 5.88258 7.75736 4.75736C8.88258 3.63214 10.4087 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+        statusText.textContent = 'Key is valid';
+        statusText.style.color = 'var(--secondary)';
+      } else {
+        statusIcon.innerHTML = '<path d="M12 8V12M12 16H12.01M21 12C21 13.1819 20.7672 14.3522 20.3149 15.4442C19.8626 16.5361 19.1997 17.5282 18.364 18.364C17.5282 19.1997 16.5361 19.8626 15.4442 20.3149C14.3522 20.7672 13.1819 21 12 21C10.8181 21 9.64778 20.7672 8.55585 20.3149C7.46392 19.8626 6.47177 19.1997 5.63604 18.364C4.80031 17.5282 4.13738 16.5361 3.68508 15.4442C3.23279 14.3522 3 13.1819 3 12C3 9.61305 3.94821 7.32387 5.63604 5.63604C7.32387 3.94821 9.61305 3 12 3C14.3869 3 16.6761 3.94821 18.364 5.63604C20.0518 7.32387 21 9.61305 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+        statusText.textContent = `Key too short (${keyValue.length}/16)`;
+        statusText.style.color = 'var(--error)';
       }
-    } catch { alert('❌ Copy failed.'); }
-  });
-</script>
+    }
+
+    // Pad key to 16 characters
+    function padKey(k) {
+      return CryptoJS.enc.Utf8.parse(k.padEnd(16, '\0').slice(0, 16));
+    }
+
+    // Encryption function
+    function encrypt() {
+      const num = document.getElementById('number').value.trim();
+      const months = parseInt(document.getElementById('duration').value, 10);
+      const keyVal = document.getElementById('key').value.trim();
+      const manualUnix = document.getElementById('manualUnix').value.trim();
+      const outputEl = document.getElementById('output');
+      const btnCopy = document.getElementById('btnCopy');
+      const numberError = document.getElementById('numberError');
+      const keyError = document.getElementById('keyError');
+      
+      // Reset errors
+      numberError.style.display = 'none';
+      keyError.style.display = 'none';
+      outputEl.classList.remove('success', 'error');
+      
+      // Validate inputs
+      let isValid = true;
+      
+      if (!/^\d+$/.test(num)) {
+        numberError.style.display = 'block';
+        isValid = false;
+      }
+      
+      if (keyVal.length !== 16) {
+        keyError.style.display = 'block';
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        outputEl.textContent = 'Please fix the errors above';
+        outputEl.classList.add('error');
+        btnCopy.style.display = 'none';
+        return;
+      }
+      
+      // Calculate timestamp
+      const ts = devMode && manualUnix ? parseInt(manualUnix, 10) : Math.floor(new Date().setMonth(new Date().getMonth() + months) / 1000);
+      const plaintext = `${num}|${ts}`;
+      
+      // Encrypt
+      try {
+        lastEncryptedRaw = CryptoJS.AES.encrypt(plaintext, padKey(keyVal), {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        }).toString();
+        
+        lastEncryptedTelegram = '`' + lastEncryptedRaw + '`';
+        lastMode = 'encrypt';
+        
+        const dateStr = new Date(ts * 1000).toLocaleString();
+        outputEl.textContent = `✅ Encrypted Successfully!\n\n🔑 Encrypted Key:\n${lastEncryptedRaw}\n\n⏰ Expiration:\n${dateStr} (Unix: ${ts})`;
+        outputEl.classList.add('success');
+        btnCopy.style.display = 'inline-block';
+        
+        // Auto-scroll to output
+        outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (error) {
+        outputEl.textContent = '❌ Encryption failed: ' + error.message;
+        outputEl.classList.add('error');
+        btnCopy.style.display = 'none';
+      }
+    }
+
+    // Decryption function
+    function decrypt() {
+      const encrypted = prompt('Paste encrypted Base64:');
+      const keyVal = document.getElementById('key').value.trim();
+      const outputEl = document.getElementById('output');
+      const btnCopy = document.getElementById('btnCopy');
+      
+      // Reset UI
+      btnCopy.style.display = 'none';
+      outputEl.classList.remove('success', 'error');
+      
+      if (!encrypted || keyVal.length !== 16) {
+        outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
+        outputEl.classList.add('error');
+        return;
+      }
+      
+      try {
+        const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        }).toString(CryptoJS.enc.Utf8);
+        
+        if (!decrypted) {
+          throw new Error('Decryption failed - possibly wrong key');
+        }
+        
+        const [num, ts] = decrypted.split('|');
+        lastMode = 'decrypt';
+        
+        if (!num || !ts) {
+          throw new Error('Invalid decrypted format');
+        }
+        
+        const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
+        outputEl.textContent = `✅ Decrypted Successfully!\n\n🔑 License ID: ${num}\n\n⏰ Expiration: ${dateStr}\n(Unix: ${ts})`;
+        outputEl.classList.add('success');
+        
+        // Auto-scroll to output
+        outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (error) {
+        outputEl.textContent = '❌ Decryption failed: ' + error.message;
+        outputEl.classList.add('error');
+      }
+    }
+
+    // Copy raw function
+    async function copyRaw() {
+      if (!lastEncryptedRaw) return;
+      
+      try {
+        await navigator.clipboard.writeText(lastEncryptedRaw);
+        showNotification('✅ Raw copied to clipboard!');
+      } catch {
+        showNotification('❌ Failed to copy');
+      }
+    }
+
+    // Output click handler
+    document.getElementById('output').addEventListener('click', async function() {
+      const txt = this.textContent;
+      
+      try {
+        if (lastMode === 'encrypt' && lastEncryptedTelegram) {
+          await navigator.clipboard.writeText(lastEncryptedTelegram);
+          showNotification('✅ Copied for Telegram!');
+        } else if (txt) {
+          await navigator.clipboard.writeText(txt);
+          showNotification('✅ Output copied to clipboard!');
+        }
+      } catch {
+        showNotification('❌ Copy failed');
+      }
+    });
+
+    // Show notification
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.textContent = message;
+      notification.className = 'notification';
+      
+      document.body.appendChild(notification);
+      
+      // Fade in
+      setTimeout(() => {
+        notification.style.opacity = '1';
+      }, 10);
+      
+      // Fade out and remove after 2 seconds
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 2000);
+    }
+
+    // Initialize key status
+    updateKeyStatus();
+  </script>
 </body>
 </html>
