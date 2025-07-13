@@ -4,22 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>License Encryptor</title>
-
+  
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.png" sizes="192x192" type="image/png">
   <link rel="apple-touch-icon" href="icon.png" sizes="192x192">
-
-  <!-- Mobile UI meta -->
-  <meta name="theme-color" content="#2563eb">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+  
   <!-- CryptoJS (CDN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
+  
   <style>
     :root {
       --primary: #2563eb;
@@ -29,6 +23,7 @@
       --card-bg: #ffffff;
       --shadow: rgba(0, 0, 0, 0.05);
       --error: #ef4444;
+      --toggle-bg: #e5e7eb;
     }
     
     body.dark {
@@ -39,6 +34,7 @@
       --card-bg: #111827;
       --shadow: rgba(255, 255, 255, 0.05);
       --error: #f87171;
+      --toggle-bg: #374151;
     }
     
     * {
@@ -221,33 +217,76 @@
       display: none;
     }
     
-    .dark-toggle, .lock-toggle {
+    /* New toggle buttons design */
+    .toggle-group {
       position: fixed;
       top: 1rem;
-      width: 2.5rem;
-      height: 2.5rem;
-      border: none;
+      right: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      z-index: 10;
+    }
+    
+    .toggle-btn {
+      width: 2.8rem;
+      height: 2.8rem;
       border-radius: 50%;
-      background: var(--secondary);
-      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      background: var(--toggle-bg);
       box-shadow: 0 4px 8px var(--shadow);
       transition: all 0.3s ease;
-      z-index: 10;
-      font-size: 1.2rem;
+      position: relative;
+      border: none;
     }
     
-    .dark-toggle {
-      right: 1rem;
-      background: var(--primary);
+    .toggle-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px var(--shadow);
     }
     
-    .lock-toggle {
-      right: 4rem;
-      display: none;
+    .toggle-btn:active {
+      transform: translateY(1px);
+    }
+    
+    .toggle-btn svg {
+      width: 1.4rem;
+      height: 1.4rem;
+      transition: all 0.3s ease;
+    }
+    
+    .dark-toggle svg path {
+      fill: var(--text);
+    }
+    
+    .lock-toggle svg path {
+      stroke: var(--text);
+      stroke-width: 2;
+    }
+    
+    .tooltip {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--card-bg);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+      z-index: 100;
+    }
+    
+    .toggle-btn:hover .tooltip {
+      opacity: 1;
+      visibility: visible;
     }
     
     pre {
@@ -298,35 +337,16 @@
       .card {
         padding: 1.8rem 1.5rem;
       }
-    }
-    
-    /* Tooltip */
-    .tooltip {
-      position: relative;
-      display: inline-block;
-    }
-    
-    .tooltip .tooltip-text {
-      visibility: hidden;
-      width: 140px;
-      background-color: var(--text);
-      color: var(--card-bg);
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 0.8rem;
-    }
-    
-    .tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
+      
+      .toggle-group {
+        top: 0.8rem;
+        right: 0.8rem;
+      }
+      
+      .toggle-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
     }
     
     /* Notification */
@@ -348,15 +368,23 @@
 </head>
 <body>
 
-  <button class="dark-toggle tooltip" onclick="toggleDarkMode()">
-    🌓
-    <span class="tooltip-text">Toggle dark mode</span>
-  </button>
-  
-  <button class="lock-toggle tooltip" id="lockBtn" onclick="toggleLock()">
-    🔒
-    <span class="tooltip-text">Lock/Unlock key</span>
-  </button>
+  <div class="toggle-group">
+    <button class="toggle-btn dark-toggle" onclick="toggleDarkMode()">
+      <!-- Sun/Moon SVG -->
+      <svg class="sun-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="tooltip">Toggle theme</span>
+    </button>
+    
+    <button class="toggle-btn lock-toggle" id="lockBtn" onclick="toggleLock()">
+      <!-- Lock/Unlock SVG -->
+      <svg class="lock-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="tooltip">Lock key</span>
+    </button>
+  </div>
 
   <div class="card">
     <h1>
@@ -450,12 +478,36 @@
     function toggleDarkMode() {
       document.body.classList.toggle('dark');
       localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
+      updateDarkModeIcon();
+    }
+    
+    // Update dark mode icon based on current theme
+    function updateDarkModeIcon() {
+      const isDark = document.body.classList.contains('dark');
+      const darkToggle = document.querySelector('.dark-toggle');
+      
+      if (isDark) {
+        darkToggle.innerHTML = `
+          <svg class="sun-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="tooltip">Switch to light mode</span>
+        `;
+      } else {
+        darkToggle.innerHTML = `
+          <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.3542 15.3542C19.3176 15.7708 18.1856 16.0001 17 16.0001C12.0294 16.0001 8 11.9706 8 7.00006C8 5.81449 8.22924 4.68246 8.64581 3.64587C5.33648 4.9758 3 8.21507 3 12.0001C3 16.9706 7.02944 21.0001 12 21.0001C15.785 21.0001 19.0243 18.6636 20.3542 15.3542Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="tooltip">Switch to dark mode</span>
+        `;
+      }
     }
     
     // Apply saved dark mode preference
     if (localStorage.getItem('dark') === '1') {
       document.body.classList.add('dark');
     }
+    updateDarkModeIcon();
 
     // Dev & lock toggle
     function toggleDev() {
@@ -470,7 +522,23 @@
       isKeyLocked = !isKeyLocked;
       const keyInput = document.getElementById('key');
       keyInput.disabled = isKeyLocked;
-      document.getElementById('lockBtn').textContent = isKeyLocked ? '🔓' : '🔒';
+      
+      const lockBtn = document.getElementById('lockBtn');
+      if (isKeyLocked) {
+        lockBtn.innerHTML = `
+          <svg class="lock-open-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="tooltip">Unlock key</span>
+        `;
+      } else {
+        lockBtn.innerHTML = `
+          <svg class="lock-closed-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15V17M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11M12 15H6V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="tooltip">Lock key</span>
+        `;
+      }
     }
 
     // Key status indicator
