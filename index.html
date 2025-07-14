@@ -814,7 +814,8 @@
       
       // Calculate timestamp
       const ts = devMode && manualUnix ? parseInt(manualUnix, 10) : Math.floor(new Date().setMonth(new Date().getMonth() + months) / 1000);
-      const plaintext = `${num}|${ts}`;
+      const plaintext = `TRADER${num}SPIDER${ts}`;
+
       
       // Encrypt
       try {
@@ -848,58 +849,57 @@
     }
 
 function decrypt() {
+  // hard‑coded markers
+  const prefix = 'TRADER';
+  const suffix = 'SPIDER';
   const encrypted = prompt('Paste encrypted Base64:');
-  const keyVal = document.getElementById('key').value.trim();
+  const keyStr   = document.getElementById('key').value.trim();
   const outputEl = document.getElementById('output');
-  const btnCopy = document.getElementById('btnCopy');
-  
-  // Reset UI
-  btnCopy.style.display = 'none';
-  outputEl.classList.remove('success', 'error');
-  
-  if (!encrypted || keyVal.length !== 16) {
+
+  if (!encrypted || keyStr.length !== 16) {
     outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
     outputEl.classList.add('error');
     return;
   }
-  
+
   try {
-    // ۱. دیکریپت اصلی
-    const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
+    // AES‑128 decrypt
+    const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
       mode: CryptoJS.mode.ECB,
       padding: CryptoJS.pad.Pkcs7
-    }).toString(CryptoJS.enc.Utf8);
-    
-    // ۲. همیشه کل متن دیکریپت‌شده را نمایش بده
-    let message = `🔓 Decrypted payload:\n\n${decrypted}\n\n`;
-    
-    // ۳. بررسی ساختار: باید شامل "num|timestamp" باشد
-    const parts = decrypted.split('|');
-    if (parts.length === 2 && parts[0] && parts[1]) {
-      const [num, ts] = parts;
-      const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
-      const currentTime = Math.floor(Date.now() / 1000);
-      const isExpired = parseInt(ts, 10) < currentTime;
-      
-      message += `✅ Format OK\n` +
-                 `🔑 License ID: ${num}\n` +
-                 `⏰ Expiration: ${dateStr} (Unix: ${ts})\n` +
-                 `${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
-      outputEl.classList.add(isExpired ? 'error' : 'success');
-    } else {
-      // ۴. اگر فرمت اشتباه بود، فقط یک هشدار کوتاه اضافه کن
-      message += '⚠️ Warning: payload does not match expected "ID|Timestamp" format.';
-      outputEl.classList.add('error');
-    }
-    
+    });
+    const raw = bytes.toString(CryptoJS.enc.Utf8);
+
+    // show raw
+    let message = `🔓 Raw Decrypted:\n${raw}\n\n`;
+
+    // verify structure
+    if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
+
+    // extract body
+    const body = raw.slice(prefix.length);
+    const parts = body.split(suffix);
+    if (parts.length !== 2) throw 'Invalid structure';
+
+    const [num, tsPart] = parts;
+    const ts = parseInt(tsPart, 10);
+    const dateStr = new Date(ts * 1000).toLocaleString();
+    const nowSec  = Math.floor(Date.now() / 1000);
+    const expired = ts < nowSec;
+
+    // parsed info
+    message += `✅ Parsed OK\n🔑 License ID: ${num}\n⏰ Expires: ${dateStr} (Unix: ${ts})\n` +
+               (expired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE');
+
     outputEl.textContent = message;
-    outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
-  } catch (error) {
-    outputEl.textContent = '❌ Decryption failed: ' + error.message;
-    outputEl.classList.add('error');
+    outputEl.className = expired ? 'error' : 'success';
+  }
+  catch (e) {
+    outputEl.textContent = `❌ Decryption failed: ${e}`;
+    outputEl.className = 'error';
   }
 }
+
 
 
     // Copy raw function
