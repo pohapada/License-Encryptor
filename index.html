@@ -684,13 +684,14 @@
       const keyInput = document.getElementById('key');
       
       if (isKeyLocked) {
-        lockBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
+    lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
         keyInput.disabled = true;
-        showNotification('🔓 Key input unlocked', 'warning');
+        showNotification('🔓 Key input locked', 'warning');
       } else {
-        lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
+    lockBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
+        
         keyInput.disabled = false;
-        showNotification('🔒 Key input locked', 'warning');
+        showNotification('🔒 Key input unlocked', 'warning');
       }
     }
 
