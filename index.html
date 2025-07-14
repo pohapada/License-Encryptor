@@ -906,9 +906,10 @@
   }
 
   // Display the message
-  outputEl.textContent = message;
-  lastMode = 'decrypt';
+  outputEl.textContent = message
   outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+lastMode = 'decrypt';
+
 }
 
 
@@ -1021,8 +1022,11 @@ document.getElementById('output').addEventListener('click', async function() {
   const txt = this.textContent.trim();
   let toCopy = txt;
 
-  if (lastMode === 'encrypt' && lastEncryptedTelegram) {
-    toCopy = lastEncryptedTelegram;  // includes backticks
+  // Always copy the decrypted text in decrypt mode
+  if (lastMode === 'decrypt') {
+    toCopy = txt;  // This is the decrypted output
+  } else if (lastMode === 'encrypt' && lastEncryptedTelegram) {
+    toCopy = lastEncryptedTelegram;  // This is the encrypted output
   }
 
   try {
@@ -1032,6 +1036,7 @@ document.getElementById('output').addEventListener('click', async function() {
     showNotification('❌ Copy failed', 'error');
   }
 });
+
 
       // Check if we're in PWA mode
       isPWA = checkPWAMode();
