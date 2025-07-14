@@ -847,54 +847,55 @@
       }
     }
 
-function decrypt() {
-  const encrypted = prompt('Paste encrypted Base64:');
-  const keyVal = document.getElementById('key').value.trim();
-  const btnCopy = document.getElementById('btnCopy');
-
-  // Reset UI
-  btnCopy.style.display = 'none';
-  outputEl.classList.remove('success', 'error');
-
-  if (!encrypted || keyVal.length !== 16) {
-    outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
-    outputEl.classList.add('error');
-    return;
-  }
-
-  try {
-    const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.Pkcs7
-    }).toString(CryptoJS.enc.Utf8);
-
-    if (!decrypted) {
-      throw new Error('Decryption failed - possibly wrong key');
+    // Decryption function
+    function decrypt() {
+      const encrypted = prompt('Paste encrypted Base64:');
+      const keyVal = document.getElementById('key').value.trim();
+      const outputEl = document.getElementById('output');
+      const btnCopy = document.getElementById('btnCopy');
+      
+      // Reset UI
+      btnCopy.style.display = 'none';
+      outputEl.classList.remove('success', 'error');
+      
+      if (!encrypted || keyVal.length !== 16) {
+        outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
+        outputEl.classList.add('error');
+        return;
+      }
+      
+      try {
+        const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        }).toString(CryptoJS.enc.Utf8);
+        
+        if (!decrypted) {
+          throw new Error('Decryption failed - possibly wrong key');
+        }
+        
+        const [num, ts] = decrypted.split('|');
+        lastMode = 'decrypt';
+        
+        if (!num || !ts) {
+          throw new Error('Invalid decrypted format');
+        }
+        
+        const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
+        const currentTime = Math.floor(Date.now() / 1000);
+        const isExpired = parseInt(ts) < currentTime;
+        
+        outputEl.textContent = `✅ DECRYPTED SUCCESSFULLY\n\n🔑 License ID: ${num}\n\n⏰ Expiration: ${dateStr}\n⌛ Unix Timestamp: ${ts}\n\n${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
+        outputEl.classList.add(isExpired ? 'error' : 'success');
+        
+        // Auto-scroll to output
+        outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (error) {
+        outputEl.textContent = '❌ Decryption failed: ' + error.message;
+        outputEl.classList.add('error');
+      }
     }
 
-    lastMode = 'decrypt';
-    const parts = decrypted.split('|');
-    if (parts.length === 2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])) {
-      // قالب درست است
-      const [num, ts] = parts;
-      const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
-      const currentTime = Math.floor(Date.now() / 1000);
-      const isExpired = parseInt(ts) < currentTime;
-
-      outputEl.textContent = `✅ DECRYPTED SUCCESSFULLY\n\n🔑 License ID: ${num}\n\n⏰ Expiration: ${dateStr}\n⌛ Unix Timestamp: ${ts}\n\n${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
-      outputEl.classList.add(isExpired ? 'error' : 'success');
-    } else {
-      // قالب درست نیست
-      outputEl.textContent = `⚠️ DECRYPTED BUT FORMAT IS NOT STANDARD!\n\n🔓 Raw output:\n${decrypted}\n\n💡 This output doesn't match the expected format.`;
-      outputEl.classList.add('warning');
-    }
-
-    outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } catch (error) {
-    outputEl.textContent = '❌ Decryption failed: ' + error.message;
-    outputEl.classList.add('error');
-  }
-}
     // Copy raw function
     async function copyRaw() {
       if (!lastEncryptedRaw) return;
