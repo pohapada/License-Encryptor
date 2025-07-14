@@ -848,57 +848,90 @@
       }
     }
 
-function decrypt() {
-  // hard‑coded markers
-  const prefix = 'TRADER';
-  const suffix = 'SPIDER';
-  const encrypted = prompt('Paste encrypted Base64:');
-  const keyStr   = document.getElementById('key').value.trim();
-  const outputEl = document.getElementById('output');
+    function decrypt() {
+      const prefix = 'TRADER';
+      const suffix = 'SPIDER';
+      const encrypted = prompt('Paste encrypted Base64:');
+      const keyStr   = document.getElementById('key').value.trim();
+      const outputEl = document.getElementById('output');
+      // validate presence
+      if (!encrypted || keyStr.length !== 16) {
+        outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
+        outputEl.className = 'error';
+        return;
+      }
+      // decrypt
+      let raw = '';
+      try {
+        const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        });
+        raw = bytes.toString(CryptoJS.enc.Utf8);
+      } catch(e) {
+        raw = '';
+      }
+      // always show raw
+      let message = `🔓 Raw Decrypted:
+${raw}
 
-  if (!encrypted || keyStr.length !== 16) {
-    outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
-    outputEl.classList.add('error');
-    return;
-  }
+`;
+      // attempt parse
+      let parsed = false;
+      try {
+        if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
+        const body = raw.slice(prefix.length);
+        const parts = body.split(suffix);
+        if (parts.length !== 2) throw 'Invalid structure';
+        const [num, tsPart] = parts;
+        const ts = parseInt(tsPart, 10);
+        const dateStr = new Date(ts * 1000).toLocaleString();
+        const nowSec = Math.floor(Date.now() / 1000);
+        const expired = ts < nowSec;
+        message += `✅ Parsed OK
+🔑 License ID: ${num}
+⏰ Expiration: ${dateStr} (Unix: ${ts})
+${expired? '❌ LICENSE EXPIRED':'✅ LICENSE ACTIVE'}`;
+        outputEl.className = expired ? 'error' : 'success';
+        parsed = true;
+      } catch(err) {
+        // show warning but keep raw
+        message += `⚠️ Parsing warning: ${err}`;
+        outputEl.className = 'warning';
+      }
+      outputEl.textContent = message;
+    }try {
+        // AES decrypt
+        const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        });
+        const raw = bytes.toString(CryptoJS.enc.Utf8);
+        // Show raw
+        let message = `🔓 Raw Decrypted:
+${raw}
 
-  try {
-    // AES‑128 decrypt
-    const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.Pkcs7
-    });
-    const raw = bytes.toString(CryptoJS.enc.Utf8);
-
-    // show raw
-    let message = `🔓 Raw Decrypted:\n${raw}\n\n`;
-
-    // verify structure
-    if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
-
-    // extract body
-    const body = raw.slice(prefix.length);
-    const parts = body.split(suffix);
-    if (parts.length !== 2) throw 'Invalid structure';
-
-    const [num, tsPart] = parts;
-    const ts = parseInt(tsPart, 10);
-    const dateStr = new Date(ts * 1000).toLocaleString();
-    const nowSec  = Math.floor(Date.now() / 1000);
-    const expired = ts < nowSec;
-
-    // parsed info
-    message += `✅ Parsed OK\n🔑 License ID: ${num}\n⏰ Expires: ${dateStr} (Unix: ${ts})\n` +
-               (expired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE');
-
-    outputEl.textContent = message;
-    outputEl.className = expired ? 'error' : 'success';
-  }
-  catch (e) {
-    outputEl.textContent = `❌ Decryption failed: ${e}`;
-    outputEl.className = 'error';
-  }
-}
+`;
+        // Verify structure
+        if(!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
+        // Extract
+        const body = raw.slice(prefix.length);
+        const parts = body.split(suffix);
+        if(parts.length !== 2) throw 'Invalid structure';
+        const [num, tsPart] = parts;
+        const ts = parseInt(tsPart,10);
+        const dateStr = new Date(ts*1000).toLocaleString();
+        const nowSec = Math.floor(Date.now()/1000);
+        const expired = ts < nowSec;
+        // Parsed info
+        message += `✅ Parsed OK
+🔑 License ID: ${num}
+⏰ Expiration: ${dateStr} (Unix: ${ts})
+${expired? '❌ LICENSE EXPIRED':'✅ LICENSE ACTIVE'}`;
+        outputEl.textContent = message;
+      } catch(e) {
+        outputEl.textContent = `❌ Decryption failed: ${e}`;
+      }
 
 
 
