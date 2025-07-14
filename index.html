@@ -847,54 +847,60 @@
       }
     }
 
-    // Decryption function
-    function decrypt() {
-      const encrypted = prompt('Paste encrypted Base64:');
-      const keyVal = document.getElementById('key').value.trim();
-      const outputEl = document.getElementById('output');
-      const btnCopy = document.getElementById('btnCopy');
+function decrypt() {
+  const encrypted = prompt('Paste encrypted Base64:');
+  const keyVal = document.getElementById('key').value.trim();
+  const outputEl = document.getElementById('output');
+  const btnCopy = document.getElementById('btnCopy');
+  
+  // Reset UI
+  btnCopy.style.display = 'none';
+  outputEl.classList.remove('success', 'error');
+  
+  if (!encrypted || keyVal.length !== 16) {
+    outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
+    outputEl.classList.add('error');
+    return;
+  }
+  
+  try {
+    // ۱. دیکریپت اصلی
+    const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7
+    }).toString(CryptoJS.enc.Utf8);
+    
+    // ۲. همیشه کل متن دیکریپت‌شده را نمایش بده
+    let message = `🔓 Decrypted payload:\n\n${decrypted}\n\n`;
+    
+    // ۳. بررسی ساختار: باید شامل "num|timestamp" باشد
+    const parts = decrypted.split('|');
+    if (parts.length === 2 && parts[0] && parts[1]) {
+      const [num, ts] = parts;
+      const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = parseInt(ts, 10) < currentTime;
       
-      // Reset UI
-      btnCopy.style.display = 'none';
-      outputEl.classList.remove('success', 'error');
-      
-      if (!encrypted || keyVal.length !== 16) {
-        outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
-        outputEl.classList.add('error');
-        return;
-      }
-      
-      try {
-        const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
-          mode: CryptoJS.mode.ECB,
-          padding: CryptoJS.pad.Pkcs7
-        }).toString(CryptoJS.enc.Utf8);
-        
-        if (!decrypted) {
-          throw new Error('Decryption failed - possibly wrong key');
-        }
-        
-        const [num, ts] = decrypted.split('|');
-        lastMode = 'decrypt';
-        
-        if (!num || !ts) {
-          throw new Error('Invalid decrypted format');
-        }
-        
-        const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
-        const currentTime = Math.floor(Date.now() / 1000);
-        const isExpired = parseInt(ts) < currentTime;
-        
-        outputEl.textContent = `✅ DECRYPTED SUCCESSFULLY\n\n🔑 License ID: ${num}\n\n⏰ Expiration: ${dateStr}\n⌛ Unix Timestamp: ${ts}\n\n${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
-        outputEl.classList.add(isExpired ? 'error' : 'success');
-        
-        // Auto-scroll to output
-        outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } catch (error) {
-        outputEl.textContent = '❌ Decryption failed: ' + error.message;
-        outputEl.classList.add('error');
-      }
+      message += `✅ Format OK\n` +
+                 `🔑 License ID: ${num}\n` +
+                 `⏰ Expiration: ${dateStr} (Unix: ${ts})\n` +
+                 `${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
+      outputEl.classList.add(isExpired ? 'error' : 'success');
+    } else {
+      // ۴. اگر فرمت اشتباه بود، فقط یک هشدار کوتاه اضافه کن
+      message += '⚠️ Warning: payload does not match expected "ID|Timestamp" format.';
+      outputEl.classList.add('error');
     }
+    
+    outputEl.textContent = message;
+    outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+  } catch (error) {
+    outputEl.textContent = '❌ Decryption failed: ' + error.message;
+    outputEl.classList.add('error');
+  }
+}
+
 
     // Copy raw function
     async function copyRaw() {
