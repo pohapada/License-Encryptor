@@ -847,101 +847,66 @@
       }
     }
 
-    // Decryption function
-    function decrypt() {
-      const encrypted = prompt('Paste encrypted Base64:');
-      const keyVal = document.getElementById('key').value.trim();
-      const outputEl = document.getElementById('output');
-      const btnCopy = document.getElementById('btnCopy');
-      
-      // Reset UI
-      btnCopy.style.display = 'none';
-      outputEl.classList.remove('success', 'error');
-      
-      if (!encrypted || keyVal.length !== 16) {
-        outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
-        outputEl.classList.add('error');
-        return;
-      }
-      
-      try {
-        const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
-          mode: CryptoJS.mode.ECB,
-          padding: CryptoJS.pad.Pkcs7
-        }).toString(CryptoJS.enc.Utf8);
-        lastMode = 'decrypt';
-        
-// 2. بررسی کن آیا قالبِ "ID|TS" هست یا نه
-const parts = decrypted.split('|');
-const isDefaultFormat = parts.length === 2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1]);
-
-// 3. اگر قالب درست بود مثل قبل پردازش کن، در غیر این صورت فقط متن کامل رو نمایش بده
-let message;
-if (isDefaultFormat) {
-  const [num, ts] = parts;
-  const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
-  const currentTime = Math.floor(Date.now() / 1000);
-  const isExpired = parseInt(ts, 10) < currentTime;
+ // Decryption function (اصلاح‌شده)
+function decrypt() {
+  const encrypted = prompt('Paste encrypted Base64:');
+  const keyVal = document.getElementById('key').value.trim();
+  const outputEl = document.getElementById('output');
+  const btnCopy = document.getElementById('btnCopy');
   
-  message = `✅ DECRYPTED SUCCESSFULLY
+  // Reset UI
+  btnCopy.style.display = 'none';
+  outputEl.classList.remove('success', 'error');
+  
+  if (!encrypted || keyVal.length !== 16) {
+    outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
+    outputEl.classList.add('error');
+    return;
+  }
+  
+  try {
+    const decrypted = CryptoJS.AES.decrypt(encrypted, padKey(keyVal), {
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7
+    }).toString(CryptoJS.enc.Utf8);
+    lastMode = 'decrypt';
+    
+    // بررسی قالب و آماده‌سازی داده‌ها
+    const parts = decrypted.split('|');
+    const isDefaultFormat = parts.length === 2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1]);
+    
+    // متغیر expiration را همیشه تعریف می‌کنیم
+    let isExpired = false;
+    let message;
+    
+    if (isDefaultFormat) {
+      const [num, ts] = parts;
+      const dateStr = new Date(parseInt(ts, 10) * 1000).toLocaleString();
+      const currentTime = Math.floor(Date.now() / 1000);
+      isExpired = parseInt(ts, 10) < currentTime;
+      
+      message = `✅ DECRYPTED SUCCESSFULLY
 🔑 License ID: ${num}
 ⏰ Expiration: ${dateStr}
 ⌛ Unix Timestamp: ${ts}
 
 ${isExpired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
-} else {
-  message = `⚠️ DECRYPTED (non‑standard format)
+    } else {
+      message = `⚠️ DECRYPTED (non‑standard format)
 ${decrypted}`;
-}
-
-// 4. نمایش خروجی
-outputEl.textContent = message;
-outputEl.classList.add(isDefaultFormat && !isExpired ? 'success' : 'error');
-
-        // Auto-scroll to output
-        outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } catch (error) {
-        outputEl.textContent = '❌ Decryption failed: ' + error.message;
-        outputEl.classList.add('error');
-      }
-    }
-
-    // Copy raw function
-    async function copyRaw() {
-      if (!lastEncryptedRaw) return;
-      
-      try {
-        await navigator.clipboard.writeText(lastEncryptedRaw);
-        showNotification('✅ Raw license key copied to clipboard!', 'success');
-      } catch {
-        showNotification('❌ Failed to copy', 'error');
-      }
-    }
-
-    // Show notification
-    function showNotification(message, type = '') {
-      const notification = document.createElement('div');
-      notification.textContent = message;
-      notification.className = `notification ${type}`;
-      
-      document.body.appendChild(notification);
-      
-      // Fade in
-      setTimeout(() => {
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateX(-50%) translateY(0)';
-      }, 10);
-      
-      // Fade out and remove after 2.5 seconds
-      setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(-50%) translateY(20px)';
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 2500);
     }
     
+    // نمایش خروجی و کلاس متناسب
+    outputEl.textContent = message;
+    // اگر قالب پیش‌فرض و منقضی نشده بود success، در غیر این صورت error
+    outputEl.classList.add(isDefaultFormat && !isExpired ? 'success' : 'error');
+    
+    outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (error) {
+    outputEl.textContent = '❌ Decryption failed: ' + error.message;
+    outputEl.classList.add('error');
+  }
+}
     // PWA Installation
     function installPWA() {
       if (deferredPrompt) {
