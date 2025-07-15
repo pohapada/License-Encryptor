@@ -889,6 +889,7 @@
       numberError.style.display = 'none';
       keyError.style.display = 'none';
       outputEl.classList.remove('success', 'error');
+      closeQR(); // Close QR container
       
       // Validate inputs
       let isValid = true;
@@ -930,7 +931,7 @@
         outputEl.textContent = `✅ ENCRYPTED SUCCESSFULLY\n\n🔑 Encrypted License Key:\n${lastEncryptedRaw}\n\n⏰ Expiration Date:\n${dateStr}\n\n⌛ Unix Timestamp: ${ts}`;
         outputEl.classList.add('success');
         btnCopy.style.display = 'inline-block';
-        btnQR.style.display = 'inline-block';
+        btnQR.style.display = 'inline-block'; // Show QR button for encrypted content
         
         // Auto-scroll to output
         outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -962,6 +963,7 @@
         outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
         outputEl.className = 'error';
         btnQR.style.display = 'none';
+        closeQR(); // Close QR container
         return;
       }
 
@@ -1012,7 +1014,8 @@
       outputEl.textContent = message
       outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       lastMode = 'decrypt';
-      btnQR.style.display = 'inline-block';
+      btnQR.style.display = 'none'; // Hide QR button for decrypted content
+      closeQR(); // Close QR container
     }
 
     // Copy raw function
@@ -1053,18 +1056,16 @@
     
     // Generate QR Code
     function generateQR() {
-      let content = '';
-      
-      if (lastMode === 'encrypt') {
-        content = lastEncryptedRaw;
-      } else if (lastMode === 'decrypt') {
-        content = document.getElementById('output').textContent;
+      // Only generate QR for encrypted content
+      if (lastMode !== 'encrypt') {
+        showNotification('QR Code is only available for encrypted licenses', 'warning');
+        return;
       }
       
-      if (content) {
-        showQRCode(content);
+      if (lastEncryptedRaw) {
+        showQRCode(lastEncryptedRaw);
       } else {
-        showNotification('No data available for QR code', 'warning');
+        showNotification('No encrypted data available for QR code', 'warning');
       }
     }
     
@@ -1101,6 +1102,8 @@
     // Close QR Code
     function closeQR() {
       document.getElementById('qrContainer').classList.remove('active');
+      const qrElement = document.getElementById('qrcode');
+      qrElement.innerHTML = ''; // Clear QR content
     }
     
     // Download QR Code
