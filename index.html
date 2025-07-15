@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>License Encryptor Pro</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- PWA Configuration -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
@@ -34,6 +34,8 @@
       --card-border: rgba(0, 0, 0, 0.05);
       --card-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       --transition: all 0.3s ease;
+      --purple: #8b5cf6;
+      --purple-light: #c4b5fd;
     }
     
     body.dark {
@@ -52,6 +54,8 @@
       --success: #34d399;
       --card-border: rgba(255, 255, 255, 0.05);
       --card-gradient: linear-gradient(135deg, #0c1d2f 0%, #1a2b3e 100%);
+      --purple: #a78bfa;
+      --purple-light: #7c3aed;
     }
     
     * {
@@ -322,6 +326,12 @@
       color: white;
     }
     
+    .btn-qr {
+      background: var(--purple);
+      color: white;
+      display: none;
+    }
+    
     /* Developer Mode Section */
     .dev-mode-section {
       background: rgba(255, 255, 255, 0.05);
@@ -472,6 +482,69 @@
       background: var(--warning);
     }
     
+    .notification.purple {
+      background: var(--purple);
+    }
+    
+    /* QR Code Container */
+    .qr-container {
+      display: none;
+      margin-top: 25px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      text-align: center;
+      border-left: 4px solid var(--purple);
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .qr-container.active {
+      display: block;
+    }
+    
+    #qrcode {
+      margin: 0 auto 15px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    
+    .qr-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .btn-qr-action {
+      background: var(--purple);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+    
+    .btn-qr-action:hover {
+      background: var(--purple-light);
+      transform: translateY(-2px);
+    }
+    
+    .btn-close-qr {
+      background: var(--gray);
+      color: var(--text);
+    }
+    
+    .btn-close-qr:hover {
+      background: var(--dark-gray);
+    }
+    
     /* Responsive */
     @media (max-width: 600px) {
       .card {
@@ -492,6 +565,10 @@
       
       h1 {
         font-size: 24px;
+      }
+      
+      .qr-actions {
+        flex-direction: column;
       }
     }
     
@@ -619,6 +696,11 @@
           Copy Raw
         </button>
         
+        <button class="btn-qr" onclick="generateQR()" id="btnQR">
+          <i class="fas fa-qrcode"></i>
+          QR Code
+        </button>
+        
         <button class="btn-disable-dev" onclick="disableDeveloperMode()" id="btnDisableDev">
           <i class="fas fa-times-circle"></i>
           Disable Dev Mode
@@ -633,6 +715,20 @@
           Developer Mode Active
         </h3>
         <p>You can now set custom Unix timestamps. Duration selection is hidden.</p>
+      </div>
+      
+      <div class="qr-container" id="qrContainer">
+        <div id="qrcode"></div>
+        <div class="qr-actions">
+          <button class="btn-qr-action" onclick="downloadQR()">
+            <i class="fas fa-download"></i>
+            Download QR Code
+          </button>
+          <button class="btn-qr-action btn-close-qr" onclick="closeQR()">
+            <i class="fas fa-times"></i>
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -650,6 +746,7 @@
     const tapTimeWindow = 3000; // 3 seconds
     let deferredPrompt;
     let isPWA = false;
+    let qrCodeInstance = null;
     
     // Set theme based on system preference
     function setSystemTheme() {
@@ -684,12 +781,11 @@
       const keyInput = document.getElementById('key');
       
       if (isKeyLocked) {
-    lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
+        lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
         keyInput.disabled = true;
         showNotification('🔓 Key input locked', 'warning');
       } else {
-    lockBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
-        
+        lockBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
         keyInput.disabled = false;
         showNotification('🔒 Key input unlocked', 'warning');
       }
@@ -785,6 +881,7 @@
       const manualUnix = document.getElementById('manualUnix').value.trim();
       const outputEl = document.getElementById('output');
       const btnCopy = document.getElementById('btnCopy');
+      const btnQR = document.getElementById('btnQR');
       const numberError = document.getElementById('numberError');
       const keyError = document.getElementById('keyError');
       
@@ -810,6 +907,7 @@
         outputEl.textContent = 'Please fix the errors above';
         outputEl.classList.add('error');
         btnCopy.style.display = 'none';
+        btnQR.style.display = 'none';
         return;
       }
       
@@ -832,6 +930,7 @@
         outputEl.textContent = `✅ ENCRYPTED SUCCESSFULLY\n\n🔑 Encrypted License Key:\n${lastEncryptedRaw}\n\n⏰ Expiration Date:\n${dateStr}\n\n⌛ Unix Timestamp: ${ts}`;
         outputEl.classList.add('success');
         btnCopy.style.display = 'inline-block';
+        btnQR.style.display = 'inline-block';
         
         // Auto-scroll to output
         outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -846,75 +945,75 @@
         outputEl.textContent = '❌ Encryption failed: ' + error.message;
         outputEl.classList.add('error');
         btnCopy.style.display = 'none';
+        btnQR.style.display = 'none';
       }
     }
 
- function decrypt() {
-  const prefix = 'TRADER';
-  const suffix = 'SPIDER';
-  const encrypted = prompt('Paste encrypted Base64:');
-  const keyStr   = document.getElementById('key').value.trim();
-  const outputEl = document.getElementById('output');
-  
-  // Validate presence
-  if (!encrypted || keyStr.length !== 16) {
-    outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
-    outputEl.className = 'error';
-    return;
-  }
+    function decrypt() {
+      const prefix = 'TRADER';
+      const suffix = 'SPIDER';
+      const encrypted = prompt('Paste encrypted Base64:');
+      const keyStr   = document.getElementById('key').value.trim();
+      const outputEl = document.getElementById('output');
+      const btnQR = document.getElementById('btnQR');
+      
+      // Validate presence
+      if (!encrypted || keyStr.length !== 16) {
+        outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
+        outputEl.className = 'error';
+        btnQR.style.display = 'none';
+        return;
+      }
 
-  // Decrypt
-  let raw = '';
-  try {
-    const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.Pkcs7
-    });
-    raw = bytes.toString(CryptoJS.enc.Utf8);
-  } catch (e) {
-    raw = '';
-  }
+      // Decrypt
+      let raw = '';
+      try {
+        const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        });
+        raw = bytes.toString(CryptoJS.enc.Utf8);
+      } catch (e) {
+        raw = '';
+      }
 
-  // Always show raw
-  let message = `🔓 Raw Decrypted:\n${raw}\n\n`;
+      // Always show raw
+      let message = `🔓 Raw Decrypted:\n${raw}\n\n`;
 
-  // Attempt to parse the decrypted text
-  let parsed = false;
-  try {
-    // Check for valid format
-    if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
-    
-    const body = raw.slice(prefix.length);
-    const parts = body.split(suffix);
-    if (parts.length !== 2) throw 'Invalid structure';
-    
-    const [num, tsPart] = parts;
-    const ts = parseInt(tsPart, 10);
-    const dateStr = new Date(ts * 1000).toLocaleString();
-    const nowSec = Math.floor(Date.now() / 1000);
-    const expired = ts < nowSec;
+      // Attempt to parse the decrypted text
+      let parsed = false;
+      try {
+        // Check for valid format
+        if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
+        
+        const body = raw.slice(prefix.length);
+        const parts = body.split(suffix);
+        if (parts.length !== 2) throw 'Invalid structure';
+        
+        const [num, tsPart] = parts;
+        const ts = parseInt(tsPart, 10);
+        const dateStr = new Date(ts * 1000).toLocaleString();
+        const nowSec = Math.floor(Date.now() / 1000);
+        const expired = ts < nowSec;
 
-    message += `✅ Parsed OK\n` +
-               `🔑 License ID: ${num}\n` +
-               `⏰ Expiration: ${dateStr} (Unix: ${ts})\n` +
-               `${expired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
-    outputEl.className = expired ? 'error' : 'success';
-    parsed = true;
-  } catch (err) {
-    // If the format is wrong, just show the raw data with warning
-    message += `⚠️ Parsing warning: ${err}`;
-    outputEl.className = 'warning';
-  }
+        message += `✅ Parsed OK\n` +
+                   `🔑 License ID: ${num}\n` +
+                   `⏰ Expiration: ${dateStr} (Unix: ${ts})\n` +
+                   `${expired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
+        outputEl.className = expired ? 'error' : 'success';
+        parsed = true;
+      } catch (err) {
+        // If the format is wrong, just show the raw data with warning
+        message += `⚠️ Parsing warning: ${err}`;
+        outputEl.className = 'warning';
+      }
 
-  // Display the message
-  outputEl.textContent = message
-  outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-lastMode = 'decrypt';
-
-}
-
-
-
+      // Display the message
+      outputEl.textContent = message
+      outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      lastMode = 'decrypt';
+      btnQR.style.display = 'inline-block';
+    }
 
     // Copy raw function
     async function copyRaw() {
@@ -950,6 +1049,77 @@ lastMode = 'decrypt';
           document.body.removeChild(notification);
         }, 300);
       }, 2500);
+    }
+    
+    // Generate QR Code
+    function generateQR() {
+      let content = '';
+      
+      if (lastMode === 'encrypt') {
+        content = lastEncryptedRaw;
+      } else if (lastMode === 'decrypt') {
+        content = document.getElementById('output').textContent;
+      }
+      
+      if (content) {
+        showQRCode(content);
+      } else {
+        showNotification('No data available for QR code', 'warning');
+      }
+    }
+    
+    // Show QR Code
+    function showQRCode(content) {
+      if (!content) {
+        showNotification('No content to generate QR code', 'error');
+        return;
+      }
+      
+      // Clear previous QR Code
+      const qrElement = document.getElementById('qrcode');
+      qrElement.innerHTML = '';
+      
+      // Create new QR Code
+      qrCodeInstance = new QRCode(qrElement, {
+        text: content,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      
+      // Show container
+      document.getElementById('qrContainer').classList.add('active');
+      
+      // Scroll to QR Code
+      document.getElementById('qrContainer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+      showNotification('QR Code generated successfully!', 'purple');
+    }
+    
+    // Close QR Code
+    function closeQR() {
+      document.getElementById('qrContainer').classList.remove('active');
+    }
+    
+    // Download QR Code
+    function downloadQR() {
+      if (!qrCodeInstance) return;
+      
+      try {
+        const canvas = document.querySelector('#qrcode canvas');
+        const dataURL = canvas.toDataURL('image/png');
+        
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'license-qr-code.png';
+        link.click();
+        
+        showNotification('✅ QR Code downloaded!', 'success');
+      } catch (error) {
+        showNotification('❌ Failed to download QR Code', 'error');
+      }
     }
     
     // PWA Installation
@@ -1018,26 +1188,26 @@ lastMode = 'decrypt';
           statusText.style.color = 'var(--error)';
         }
       });
+      
       // Click on the <pre> copies for Telegram if encrypt, otherwise copies entire output text
-document.getElementById('output').addEventListener('click', async function() {
-  const txt = this.textContent.trim();
-  let toCopy = txt;
+      document.getElementById('output').addEventListener('click', async function() {
+        const txt = this.textContent.trim();
+        let toCopy = txt;
 
-  // Always copy the decrypted text in decrypt mode
-  if (lastMode === 'decrypt') {
-    toCopy = txt;  // This is the decrypted output
-  } else if (lastMode === 'encrypt' && lastEncryptedTelegram) {
-    toCopy = lastEncryptedTelegram;  // This is the encrypted output
-  }
+        // Always copy the decrypted text in decrypt mode
+        if (lastMode === 'decrypt') {
+          toCopy = txt;  // This is the decrypted output
+        } else if (lastMode === 'encrypt' && lastEncryptedTelegram) {
+          toCopy = lastEncryptedTelegram;  // This is the encrypted output
+        }
 
-  try {
-    await navigator.clipboard.writeText(toCopy);
-    showNotification('✅ Copied to clipboard!', 'success');
-  } catch {
-    showNotification('❌ Copy failed', 'error');
-  }
-});
-
+        try {
+          await navigator.clipboard.writeText(toCopy);
+          showNotification('✅ Copied to clipboard!', 'success');
+        } catch {
+          showNotification('❌ Copy failed', 'error');
+        }
+      });
 
       // Check if we're in PWA mode
       isPWA = checkPWAMode();
