@@ -1267,61 +1267,171 @@
     }
     
     // Download QR Code with text as a banner
-   function downloadQRWithText() {
-  if (!qrCodeInstance) return;
-  
+ function downloadQRWithText(accountNumber, licenseKey) {
   try {
+    const width = 800;
+    const height = 400;
+    const logoUrl = 'https://i.ibb.co/0G3Yr0X/spidertrade.png';
+    
     const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext('2d');
-    canvas.width = 800;
-    canvas.height = 400;
-
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    
+    // پس‌زمینه گرادیانت
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, '#1a1a2e');
     gradient.addColorStop(1, '#16213e');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // QR code (smaller size)
-    const qrCanvas = document.querySelector('#qrcode canvas');
-    const qrWidth = 200;
-    const qrHeight = 200;
-    const qrX = 20;
-    const qrY = 20;
-    ctx.drawImage(qrCanvas, qrX, qrY, qrWidth, qrHeight);
-
-    // Software name (right side)
-    ctx.font = 'bold 36px "Segoe UI", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'left';
-    ctx.fillText('SpiderTrader', qrX + qrWidth + 20, qrY + 40);
-
-    // Telegram channel (right side)
-    ctx.font = '18px "Segoe UI", sans-serif';
-    ctx.fillText('Join our Telegram: @SpiderTrader', qrX + qrWidth + 20, qrY + 80);
-
-    // Support email (right side)
-    ctx.fillText('Support: support@spidertrader.com', qrX + qrWidth + 20, qrY + 110);
-
-    // Encrypted code (shortened, below QR Code)
-    const shortCode = lastEncryptedRaw.substring(0, 10) + '...' + lastEncryptedRaw.substring(lastEncryptedRaw.length - 10);
-    ctx.font = '14px "Segoe UI", sans-serif';
-    ctx.fillText(`License Key: ${shortCode}`, qrX, qrY + qrHeight + 20);
-
-    // Account number (below QR Code)
-    ctx.fillText(`Account: ${currentAccountNumber}`, qrX, qrY + qrHeight + 40);
-
-    // Convert to data URL and download
-    const dataURL = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = dataURL;
-    link.download = `spidertrader-license-${currentAccountNumber}.png`;
-    link.click();
-
-    showNotification('✅ License downloaded!', 'success');
+    ctx.fillRect(0, 0, width, height);
+    
+    // کانتینر اصلی با گوشه‌های گرد
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+    ctx.lineWidth = 1;
+    
+    // تابع ساده برای گوشه‌های گرد
+    const drawRoundedRect = (x, y, w, h, r) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    };
+    
+    drawRoundedRect(40, 40, width - 80, height - 80, 12);
+    ctx.fill();
+    ctx.stroke();
+    
+    // بارگذاری لوگو
+    const logo = new Image();
+    logo.crossOrigin = 'Anonymous';
+    logo.src = logoUrl;
+    
+    // پس از بارگذاری لوگو ادامه می‌دهیم
+    logo.onload = () => {
+      // لوگوی بالا-راست
+      const logoSize = 80;
+      ctx.drawImage(logo, width - 40 - logoSize - 20, 60, logoSize, logoSize);
+      
+      // هدر اصلی
+      ctx.font = 'bold 34px "Segoe UI", sans-serif';
+      const textGradient = ctx.createLinearGradient(0, 0, 300, 0);
+      textGradient.addColorStop(0, '#38bdf8');
+      textGradient.addColorStop(1, '#818cf8');
+      ctx.fillStyle = textGradient;
+      ctx.fillText('SpiderTrader Pro', 100, 90);
+      
+      // زیرعنوان
+      ctx.font = '16px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('METATRADER LICENSE', 100, 120);
+      
+      // جداکننده
+      ctx.beginPath();
+      ctx.moveTo(100, 140);
+      ctx.lineTo(400, 140);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.stroke();
+      
+      // استفاده از QR کد موجود در صفحه
+      const qrCanvas = document.querySelector('#qrcode canvas');
+      if (!qrCanvas) {
+        console.error('QR canvas not found');
+        return;
+      }
+      
+      // رسم QR کد
+      const qrSize = 180;
+      const qrX = 100;
+      const qrY = 160;
+      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+      
+      // لوگوی وسط QR
+      const qrLogoSize = 40;
+      ctx.drawImage(
+        logo,
+        qrX + qrSize/2 - qrLogoSize/2,
+        qrY + qrSize/2 - qrLogoSize/2,
+        qrLogoSize,
+        qrLogoSize
+      );
+      
+      // برچسب زیر QR
+      ctx.font = 'bold 14px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#38bdf8';
+      ctx.textAlign = 'center';
+      ctx.fillText('SCAN TO ACTIVATE', qrX + qrSize/2, qrY + qrSize + 20);
+      ctx.textAlign = 'left';
+      
+      // اطلاعات لایسنس
+      ctx.font = 'bold 22px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText('LICENSE INFORMATION', 320, 180);
+      
+      // اطلاعات حساب
+      ctx.font = '16px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Account Number:', 320, 220);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(accountNumber, 320 + 150, 220);
+      
+      // کلید لایسنس
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('License Key:', 320, 260);
+      ctx.fillStyle = '#e2e8f0';
+      const shortKey = licenseKey.substring(0, 8) + '...' + licenseKey.substring(licenseKey.length - 8);
+      ctx.fillText(shortKey, 320 + 150, 260);
+      
+      // پلتفرم
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Platform:', 320, 300);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText('MetaTrader 5', 320 + 150, 300);
+      
+      // فوتر
+      ctx.beginPath();
+      ctx.moveTo(40, height - 50);
+      ctx.lineTo(width - 40, height - 50);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+      ctx.stroke();
+      
+      ctx.font = '14px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'center';
+      ctx.fillText('Telegram: @SpiderTraderSupport | Email: support@spidertrader.com | Web: spidertrader.com', width/2, height - 20);
+      
+      // دانلود تصویر
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = `spidertrader-license-${accountNumber}.png`;
+      link.click();
+      
+      // نمایش نوتیفیکیشن (اگر تابع موجود باشد)
+      if (typeof showNotification === 'function') {
+        showNotification('✅ License downloaded!', 'success');
+      }
+    };
+    
+    // مدیریت خطای بارگذاری لوگو
+    logo.onerror = () => {
+      console.error('Failed to load logo');
+      if (typeof showNotification === 'function') {
+        showNotification('❌ Failed to download license', 'error');
+      }
+    };
   } catch (error) {
-    showNotification('❌ Failed to download license', 'error');
+    console.error('Error generating banner:', error);
+    if (typeof showNotification === 'function') {
+      showNotification('❌ Failed to download license', 'error');
+    }
   }
 }
     
