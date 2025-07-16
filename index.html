@@ -1,60 +1,12 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="fa">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>License Encryptor Pro</title>
+  <title>SpiderTrader License Generator Pro</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
-  <meta name="theme-color" content="#3b82f6">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
   <style>
     :root {
       --primary: #3b82f6;
@@ -77,6 +29,8 @@
       --purple-light: #c4b5fd;
       --gold: #FFD700;
       --silver: #C0C0C0;
+      --dark-blue: #0c1d2f;
+      --darker-blue: #091928;
     }
     
     body.dark {
@@ -532,7 +486,7 @@
       background: var(--purple);
     }
     
-    /* QR Code Modal */
+    /* QR Code Modal - Improved */
     .qr-modal {
       display: none;
       position: fixed;
@@ -540,7 +494,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.85);
       z-index: 2000;
       align-items: center;
       justify-content: center;
@@ -552,16 +506,22 @@
     }
     
     .qr-modal-content {
-      background: var(--card-bg);
+      background: var(--dark-blue);
       border-radius: 20px;
-      padding: 30px;
+      padding: 40px;
       width: 90%;
-      max-width: 400px;
+      max-width: 600px;
       text-align: center;
       position: relative;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
       border: 2px solid var(--gold);
       overflow: hidden;
+      animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
     
     .qr-modal-content::before {
@@ -574,105 +534,192 @@
       background: linear-gradient(90deg, var(--gold), var(--silver));
     }
     
+    .qr-modal-content::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 30%),
+        linear-gradient(to bottom, rgba(12, 29, 47, 0.9), rgba(9, 25, 40, 0.95));
+      z-index: -1;
+    }
+    
     .qr-modal-header {
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       position: relative;
     }
     
     .qr-modal-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text);
+      font-size: 32px;
+      font-weight: 800;
       margin-bottom: 10px;
-      background: linear-gradient(45deg, var(--gold), var(--silver));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
     }
     
     .qr-modal-subtitle {
-      color: var(--text-light);
-      font-size: 16px;
+      color: var(--primary-light);
+      font-size: 18px;
+      margin-top: 5px;
     }
     
     .qr-modal-body {
-      margin: 20px 0;
+      margin: 30px 0;
+      position: relative;
     }
     
     .qr-code-container {
       background: white;
-      padding: 15px;
-      border-radius: 12px;
+      padding: 20px;
+      border-radius: 15px;
       display: inline-block;
       margin: 0 auto;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      border: 1px solid var(--dark-gray);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
     }
     
-    .qr-license-text {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--text);
-      padding: 12px;
-      border-radius: 8px;
-      background: rgba(255, 215, 0, 0.1);
-      border: 1px solid var(--gold);
+    .qr-overlay-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70px;
+      height: 70px;
+      background: var(--primary);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+    
+    .qr-overlay-logo i {
+      font-size: 36px;
+      color: white;
+    }
+    
+    .qr-info {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: left;
+      border-left: 3px solid var(--gold);
+    }
+    
+    .qr-info-item {
+      display: flex;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .qr-info-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .qr-info-label {
+      width: 150px;
+      font-weight: 600;
+      color: var(--primary-light);
+    }
+    
+    .qr-info-value {
+      flex: 1;
+      color: white;
       font-family: 'Courier New', monospace;
+      word-break: break-all;
+    }
+    
+    .telegram-section {
+      background: linear-gradient(45deg, #0088cc, #2AABEE);
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .telegram-section i {
+      font-size: 28px;
+      color: white;
+    }
+    
+    .telegram-section span {
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
     }
     
     .qr-modal-footer {
-      margin-top: 20px;
+      margin-top: 30px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
       justify-content: center;
     }
     
     .btn-modal {
-      padding: 12px 24px;
+      padding: 14px 30px;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       font-weight: 600;
-      font-size: 16px;
+      font-size: 17px;
       cursor: pointer;
       transition: all 0.3s ease;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      min-width: 200px;
+      justify-content: center;
     }
     
     .btn-download {
       background: linear-gradient(45deg, var(--gold), var(--silver));
       color: #333;
+      font-weight: 700;
     }
     
     .btn-download:hover {
       transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
     }
     
     .btn-close-modal {
-      background: var(--gray);
-      color: var(--text);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     .btn-close-modal:hover {
-      background: var(--dark-gray);
+      background: rgba(255, 255, 255, 0.2);
     }
     
     .close-modal {
       position: absolute;
-      top: 15px;
-      right: 15px;
-      width: 35px;
-      height: 35px;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: var(--gray);
+      background: rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.3s ease;
+      z-index: 10;
     }
     
     .close-modal:hover {
@@ -744,6 +791,32 @@
     
     .offline-status.offline {
       background: var(--error);
+    }
+    
+    .grid-dots {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      z-index: -1;
+    }
+    
+    .glowing-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      animation: glowLine 5s infinite linear;
+      z-index: -1;
+    }
+    
+    @keyframes glowLine {
+      0% { opacity: 0; left: -50%; }
+      50% { opacity: 1; }
+      100% { opacity: 0; left: 150%; }
     }
   </style>
 </head>
@@ -855,24 +928,48 @@
     </div>
   </div>
   
-  <!-- QR Code Modal -->
+  <!-- Improved QR Code Modal -->
   <div class="qr-modal" id="qrModal">
     <div class="qr-modal-content">
+      <div class="grid-dots"></div>
+      <div class="glowing-line" style="top: 30%; width: 80%; animation-delay: 0s;"></div>
+      <div class="glowing-line" style="top: 70%; width: 60%; animation-delay: 2s;"></div>
+      
       <div class="close-modal" onclick="closeQRModal()">
         <i class="fas fa-times"></i>
       </div>
       
       <div class="qr-modal-header">
         <h2 class="qr-modal-title">SpiderTrader License</h2>
-        <div class="qr-modal-subtitle">Scan to activate your license</div>
+        <div class="qr-modal-subtitle">Your premium trading solution for MetaTrader 5</div>
       </div>
       
       <div class="qr-modal-body">
         <div class="qr-code-container">
           <div id="qrcode"></div>
+          <div class="qr-overlay-logo">
+            <i class="fas fa-spider"></i>
+          </div>
         </div>
-        <div class="qr-license-text" id="licenseText">
-          SpiderTrader license key: 
+        
+        <div class="qr-info">
+          <div class="qr-info-item">
+            <div class="qr-info-label">Account Number:</div>
+            <div class="qr-info-value" id="qrAccount">123456789</div>
+          </div>
+          <div class="qr-info-item">
+            <div class="qr-info-label">License Key:</div>
+            <div class="qr-info-value" id="qrLicense">U2FsdGVkX1+...</div>
+          </div>
+          <div class="qr-info-item">
+            <div class="qr-info-label">Software:</div>
+            <div class="qr-info-value">SpiderTrader for MetaTrader 5</div>
+          </div>
+        </div>
+        
+        <div class="telegram-section">
+          <i class="fab fa-telegram"></i>
+          <span>Join our Telegram: @SpiderTrader_Official</span>
         </div>
       </div>
       
@@ -1030,7 +1127,7 @@
       return CryptoJS.enc.Utf8.parse(k.padEnd(16, '\0').slice(0, 16));
     }
 
-    // Encryption function
+    // Encryption function - FIXED
     function encrypt() {
       const num = document.getElementById('number').value.trim();
       const months = parseInt(document.getElementById('duration').value, 10);
@@ -1073,16 +1170,24 @@
       currentAccountNumber = num;
       
       // Calculate timestamp
-      const ts = devMode && manualUnix ? parseInt(manualUnix, 10) : Math.floor(new Date().setMonth(new Date().getMonth() + months) / 1000);
-      const plaintext = `TRADER${num}SPIDER${ts}`;
+      let ts;
+      if (devMode && manualUnix) {
+        ts = parseInt(manualUnix, 10);
+      } else {
+        const date = new Date();
+        date.setMonth(date.getMonth() + months);
+        ts = Math.floor(date.getTime() / 1000);
+      }
       
+      const plaintext = `TRADER${num}SPIDER${ts}`;
+
       // Encrypt
       try {
-        lastEncryptedRaw = CryptoJS.AES.encrypt(plaintext, padKey(keyVal), {
+        const encrypted = CryptoJS.AES.encrypt(plaintext, padKey(keyVal), {
           mode: CryptoJS.mode.ECB,
           padding: CryptoJS.pad.Pkcs7
-        }).toString();
-        
+        });
+        lastEncryptedRaw = encrypted.toString();
         lastEncryptedTelegram = '`' + lastEncryptedRaw + '`';
         lastMode = 'encrypt';
         
@@ -1109,6 +1214,7 @@
       }
     }
 
+    // Decryption function - FIXED
     function decrypt() {
       const prefix = 'TRADER';
       const suffix = 'SPIDER';
@@ -1242,16 +1348,16 @@
       // Create new QR Code
       qrCodeInstance = new QRCode(qrElement, {
         text: content,
-        width: 200,
-        height: 200,
+        width: 250,
+        height: 250,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
       });
       
-      // Update license text
-      document.getElementById('licenseText').textContent = 
-        `SpiderTrader license key: ${currentAccountNumber}`;
+      // Update license info
+      document.getElementById('qrAccount').textContent = currentAccountNumber;
+      document.getElementById('qrLicense').textContent = content.substring(0, 20) + '...' + content.substring(content.length - 10);
       
       // Show modal
       document.getElementById('qrModal').classList.add('active');
@@ -1266,170 +1372,117 @@
       qrElement.innerHTML = ''; // Clear QR content
     }
     
-    // Download QR Code with text as a banner
-function downloadQRWithText() {
-  if (!qrCodeInstance) return;
-  
-  try {
-    const width = 800;
-    const height = 400;
-    const logoUrl = 'https://i.ibb.co/0G3Yr0X/spidertrade.png';
-    
-    // 1. ساخت canvas و زمینه
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#1a1a2e');
-    gradient.addColorStop(1, '#16213e');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-    
-    // 2. کانتینر اصلی گرد
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
-    ctx.lineWidth = 1;
-    const drawRoundedRect = (x, y, w, h, r) => {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-    };
-    drawRoundedRect(40, 40, width - 80, height - 80, 12);
-    ctx.fill();
-    ctx.stroke();
-    
-    // 3. بارگذاری لوگو
-    const logo = new Image();
-    logo.crossOrigin = 'Anonymous';
-    logo.src = logoUrl;
-    logo.onload = () => {
+    // Download QR Code with text - IMPROVED
+    function downloadQRWithText() {
+      if (!qrCodeInstance) return;
       
-      // 3.1 لوگوی بالا-راست
-      const logoSize = 80;
-      ctx.drawImage(logo, width - 40 - logoSize - 20, 60, logoSize, logoSize);
-      
-      // 3.2 هدر و زیرعنوان
-      ctx.font = 'bold 34px "Segoe UI", sans-serif';
-      const textGradient = ctx.createLinearGradient(0, 0, 300, 0);
-      textGradient.addColorStop(0, '#38bdf8');
-      textGradient.addColorStop(1, '#818cf8');
-      ctx.fillStyle = textGradient;
-      ctx.fillText('SpiderTrader Pro', 100, 90);
-      
-      ctx.font = '16px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('METATRADER LICENSE', 100, 120);
-      
-      // 3.3 جداکننده
-      ctx.beginPath();
-      ctx.moveTo(100, 140);
-      ctx.lineTo(400, 140);
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
-      ctx.stroke();
-      
-      // 3.4 QR کد
-      const qrCanvas = document.querySelector('#qrcode canvas');
-      if (!qrCanvas) return console.error('QR canvas not found');
-      const qrSize = 180, qrX = 100, qrY = 160;
-      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
-      
-      // لوگوی وسط QR
-      const qrLogoSize = 40;
-      ctx.drawImage(
-        logo,
-        qrX + qrSize/2 - qrLogoSize/2,
-        qrY + qrSize/2 - qrLogoSize/2,
-        qrLogoSize,
-        qrLogoSize
-      );
-      
-      // برچسب زیر QR
-      ctx.font = 'bold 14px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#38aef8';
-      ctx.textAlign = 'center';
-      ctx.fillText('SCAN TO ACTIVATE', qrX + qrSize/2, qrY + qrSize + 20);
-      ctx.textAlign = 'left';
-      
-      // 4. اطلاعات لایسنس: توجه کنید نام متغیرها را همین‌جا اصلاح کرده‌ایم
-      ctx.font = 'bold 22px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillText('LICENSE INFORMATION', 320, 180);
-      
-      // شماره حساب
-      ctx.font = '16px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('Account Number:', 320, 220);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillText(currentAccountNumber, 320 + 150, 220);  // ← اینجا
-      
-      // کلید لایسنس (خلاصه)
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('License Key:', 320, 260);
-      ctx.fillStyle = '#e2e8f0';
-      const shortKey = lastEncryptedRaw.substring(0, 8)
-                     + '...'
-                     + lastEncryptedRaw.substring(lastEncryptedRaw.length - 8);
-      ctx.fillText(shortKey, 320 + 150, 260);            // ← اینجا
-      
-      // پلتفرم
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('Platform:', 320, 300);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillText('MetaTrader 5', 320 + 150, 300);
-      
-      // 5. فوتر
-      ctx.beginPath();
-      ctx.moveTo(40, height - 50);
-      ctx.lineTo(width - 40, height - 50);
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
-      ctx.stroke();
-      
-      ctx.font = '14px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#94a3b8';
-      ctx.textAlign = 'center';
-      ctx.fillText(
-        'Telegram: @SpiderTraderSupport | Email: support@spidertrader.com | Web: spidertrader.com',
-        width / 2,
-        height - 20
-      );
-      
-      // 6. دانلود
-      const dataURL = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = dataURL;
-      link.download = `spidertrader-license-${currentAccountNumber}.png`;  // ← اینجا هم اصلاح شد
-      link.click();
-      
-      // نوتیفیکیشن
-      if (typeof showNotification === 'function') {
-        showNotification('✅ License downloaded!', 'success');
+      try {
+        const canvas = document.querySelector('#qrcode canvas');
+        const accountNum = currentAccountNumber;
+        const licenseKey = lastEncryptedRaw;
+        
+        // Create a new canvas for the banner
+        const bannerCanvas = document.createElement('canvas');
+        bannerCanvas.width = 800;
+        bannerCanvas.height = 600;
+        const ctx = bannerCanvas.getContext('2d');
+        
+        // Draw background gradient (dark blue)
+        const gradient = ctx.createLinearGradient(0, 0, bannerCanvas.width, bannerCanvas.height);
+        gradient.addColorStop(0, '#0c1d2f');
+        gradient.addColorStop(1, '#091928');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, bannerCanvas.width, bannerCanvas.height);
+        
+        // Draw grid dots
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        for (let x = 0; x < bannerCanvas.width; x += 20) {
+          for (let y = 0; y < bannerCanvas.height; y += 20) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        
+        // Draw decorative lines
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, 300);
+        ctx.lineTo(800, 300);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(400, 0);
+        ctx.lineTo(400, 600);
+        ctx.stroke();
+        
+        // Draw title
+        ctx.font = 'bold 42px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#FFD700';
+        ctx.textAlign = 'center';
+        ctx.fillText('SpiderTrader License', bannerCanvas.width / 2, 80);
+        
+        // Draw subtitle
+        ctx.font = '24px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#93c5fd';
+        ctx.fillText('Premium Trading Solution for MetaTrader 5', bannerCanvas.width / 2, 120);
+        
+        // Draw QR code
+        const qrSize = 280;
+        const qrX = (bannerCanvas.width - qrSize) / 2;
+        const qrY = 180;
+        
+        // Draw QR code background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30);
+        ctx.drawImage(canvas, qrX, qrY, qrSize, qrSize);
+        
+        // Draw SpiderTrader logo in center of QR code
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(qrX + qrSize/2 - 35, qrY + qrSize/2 - 35, 70, 70);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 50px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('S', qrX + qrSize/2, qrY + qrSize/2 + 5);
+        
+        // Draw account info
+        ctx.font = 'bold 32px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#FFD700';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Account: ${accountNum}`, bannerCanvas.width / 2, qrY + qrSize + 60);
+        
+        // Draw license key
+        ctx.font = '20px "Courier New", monospace';
+        ctx.fillStyle = '#93c5fd';
+        ctx.fillText(licenseKey.substring(0, 40) + '...', bannerCanvas.width / 2, qrY + qrSize + 100);
+        
+        // Draw Telegram info
+        ctx.font = 'bold 26px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#34d399';
+        ctx.fillText('Telegram Channel: @SpiderTrader_Official', bannerCanvas.width / 2, qrY + qrSize + 160);
+        
+        // Draw footer
+        ctx.font = '18px "Segoe UI", sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText('© 2023 SpiderTrader. All rights reserved.', bannerCanvas.width / 2, bannerCanvas.height - 40);
+        
+        // Convert to data URL
+        const dataURL = bannerCanvas.toDataURL('image/png');
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = `spidertrader-license-${accountNum}.png`;
+        link.click();
+        
+        showNotification('✅ License banner downloaded!', 'success');
+      } catch (error) {
+        showNotification('❌ Failed to download license banner', 'error');
       }
-    };
-    
-    logo.onerror = () => {
-      console.error('Failed to load logo');
-      if (typeof showNotification === 'function') {
-        showNotification('❌ Failed to download license', 'error');
-      }
-    };
-    
-  } catch (error) {
-    console.error('Error generating banner:', error);
-    if (typeof showNotification === 'function') {
-      showNotification('❌ Failed to download license', 'error');
     }
-  }
-}
-
+    
     // PWA Installation
     function installPWA() {
       if (deferredPrompt) {
