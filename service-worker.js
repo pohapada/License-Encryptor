@@ -5,6 +5,7 @@ const FILES_TO_CACHE = [
   './crypto-js.min.js',
   './icon.png',
   './icon-512.png',
+  '/spider_logo.png',
   './manifest.json'
 ];
 
