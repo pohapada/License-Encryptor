@@ -1267,7 +1267,8 @@
     }
     
     // Download QR Code with text as a banner
- function downloadQRWithText(accountNumber, licenseKey) {
+ function downloadQRWithText() {
+         if (!qrCodeInstance) return;
   try {
     const width = 800;
     const height = 400;
