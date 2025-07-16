@@ -36,6 +36,8 @@
       --transition: all 0.3s ease;
       --purple: #8b5cf6;
       --purple-light: #c4b5fd;
+      --gold: #FFD700;
+      --silver: #C0C0C0;
     }
     
     body.dark {
@@ -56,6 +58,8 @@
       --card-gradient: linear-gradient(135deg, #0c1d2f 0%, #1a2b3e 100%);
       --purple: #a78bfa;
       --purple-light: #7c3aed;
+      --gold: #FFD700;
+      --silver: #C0C0C0;
     }
     
     * {
@@ -159,6 +163,9 @@
       color: var(--primary);
       text-align: center;
       margin: 0;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     
     .install-banner {
@@ -486,63 +493,153 @@
       background: var(--purple);
     }
     
-    /* QR Code Container */
-    .qr-container {
+    /* QR Code Modal */
+    .qr-modal {
       display: none;
-      margin-top: 25px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      text-align: center;
-      border-left: 4px solid var(--purple);
-      animation: fadeIn 0.5s ease;
-    }
-    
-    .qr-container.active {
-      display: block;
-    }
-    
-    #qrcode {
-      margin: 0 auto 15px;
-      padding: 10px;
-      background: white;
-      border-radius: 8px;
-      display: inline-block;
-    }
-    
-    .qr-actions {
-      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin-top: 15px;
+      animation: fadeIn 0.3s ease;
     }
     
-    .btn-qr-action {
-      background: var(--purple);
-      color: white;
+    .qr-modal.active {
+      display: flex;
+    }
+    
+    .qr-modal-content {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      border: 2px solid var(--gold);
+      overflow: hidden;
+    }
+    
+    .qr-modal-content::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--gold), var(--silver));
+    }
+    
+    .qr-modal-header {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .qr-modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, var(--gold), var(--silver));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .qr-modal-subtitle {
+      color: var(--text-light);
+      font-size: 16px;
+    }
+    
+    .qr-modal-body {
+      margin: 20px 0;
+    }
+    
+    .qr-code-container {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 0 auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border: 1px solid var(--dark-gray);
+    }
+    
+    .qr-license-text {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid var(--gold);
+      font-family: 'Courier New', monospace;
+    }
+    
+    .qr-modal-footer {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .btn-modal {
+      padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      padding: 8px 16px;
+      font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.3s ease;
-      font-size: 14px;
     }
     
-    .btn-qr-action:hover {
-      background: var(--purple-light);
-      transform: translateY(-2px);
+    .btn-download {
+      background: linear-gradient(45deg, var(--gold), var(--silver));
+      color: #333;
     }
     
-    .btn-close-qr {
+    .btn-download:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+    
+    .btn-close-modal {
       background: var(--gray);
       color: var(--text);
     }
     
-    .btn-close-qr:hover {
+    .btn-close-modal:hover {
       background: var(--dark-gray);
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: var(--gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .close-modal:hover {
+      background: var(--error);
+      color: white;
+      transform: rotate(90deg);
     }
     
     /* Responsive */
@@ -567,7 +664,7 @@
         font-size: 24px;
       }
       
-      .qr-actions {
+      .qr-modal-footer {
         flex-direction: column;
       }
     }
@@ -716,19 +813,39 @@
         </h3>
         <p>You can now set custom Unix timestamps. Duration selection is hidden.</p>
       </div>
+    </div>
+  </div>
+  
+  <!-- QR Code Modal -->
+  <div class="qr-modal" id="qrModal">
+    <div class="qr-modal-content">
+      <div class="close-modal" onclick="closeQRModal()">
+        <i class="fas fa-times"></i>
+      </div>
       
-      <div class="qr-container" id="qrContainer">
-        <div id="qrcode"></div>
-        <div class="qr-actions">
-          <button class="btn-qr-action" onclick="downloadQR()">
-            <i class="fas fa-download"></i>
-            Download QR Code
-          </button>
-          <button class="btn-qr-action btn-close-qr" onclick="closeQR()">
-            <i class="fas fa-times"></i>
-            Close
-          </button>
+      <div class="qr-modal-header">
+        <h2 class="qr-modal-title">SpiderTrader License</h2>
+        <div class="qr-modal-subtitle">Scan to activate your license</div>
+      </div>
+      
+      <div class="qr-modal-body">
+        <div class="qr-code-container">
+          <div id="qrcode"></div>
         </div>
+        <div class="qr-license-text" id="licenseText">
+          SpiderTrader license key: 
+        </div>
+      </div>
+      
+      <div class="qr-modal-footer">
+        <button class="btn-modal btn-download" onclick="downloadQRWithText()">
+          <i class="fas fa-download"></i>
+          Download License
+        </button>
+        <button class="btn-modal btn-close-modal" onclick="closeQRModal()">
+          <i class="fas fa-times"></i>
+          Close
+        </button>
       </div>
     </div>
   </div>
@@ -747,6 +864,7 @@
     let deferredPrompt;
     let isPWA = false;
     let qrCodeInstance = null;
+    let currentAccountNumber = '';
     
     // Set theme based on system preference
     function setSystemTheme() {
@@ -889,7 +1007,7 @@
       numberError.style.display = 'none';
       keyError.style.display = 'none';
       outputEl.classList.remove('success', 'error');
-      closeQR(); // Close QR container
+      closeQRModal(); // Close QR modal
       
       // Validate inputs
       let isValid = true;
@@ -911,6 +1029,9 @@
         btnQR.style.display = 'none';
         return;
       }
+      
+      // Save account number for QR code
+      currentAccountNumber = num;
       
       // Calculate timestamp
       const ts = devMode && manualUnix ? parseInt(manualUnix, 10) : Math.floor(new Date().setMonth(new Date().getMonth() + months) / 1000);
@@ -963,7 +1084,7 @@
         outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
         outputEl.className = 'error';
         btnQR.style.display = 'none';
-        closeQR(); // Close QR container
+        closeQRModal(); // Close QR modal
         return;
       }
 
@@ -1015,7 +1136,7 @@
       outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       lastMode = 'decrypt';
       btnQR.style.display = 'none'; // Hide QR button for decrypted content
-      closeQR(); // Close QR container
+      closeQRModal(); // Close QR modal
     }
 
     // Copy raw function
@@ -1063,14 +1184,14 @@
       }
       
       if (lastEncryptedRaw) {
-        showQRCode(lastEncryptedRaw);
+        showQRCodeModal(lastEncryptedRaw);
       } else {
         showNotification('No encrypted data available for QR code', 'warning');
       }
     }
     
-    // Show QR Code
-    function showQRCode(content) {
+    // Show QR Code in modal
+    function showQRCodeModal(content) {
       if (!content) {
         showNotification('No content to generate QR code', 'error');
         return;
@@ -1090,38 +1211,93 @@
         correctLevel: QRCode.CorrectLevel.H
       });
       
-      // Show container
-      document.getElementById('qrContainer').classList.add('active');
+      // Update license text
+      document.getElementById('licenseText').textContent = 
+        `SpiderTrader license key: ${currentAccountNumber}`;
       
-      // Scroll to QR Code
-      document.getElementById('qrContainer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Show modal
+      document.getElementById('qrModal').classList.add('active');
       
       showNotification('QR Code generated successfully!', 'purple');
     }
     
-    // Close QR Code
-    function closeQR() {
-      document.getElementById('qrContainer').classList.remove('active');
+    // Close QR Modal
+    function closeQRModal() {
+      document.getElementById('qrModal').classList.remove('active');
       const qrElement = document.getElementById('qrcode');
       qrElement.innerHTML = ''; // Clear QR content
     }
     
-    // Download QR Code
-    function downloadQR() {
+    // Download QR Code with text
+    function downloadQRWithText() {
       if (!qrCodeInstance) return;
       
       try {
         const canvas = document.querySelector('#qrcode canvas');
-        const dataURL = canvas.toDataURL('image/png');
+        const text = document.getElementById('licenseText').textContent;
         
+        // Create a new canvas to combine QR and text
+        const combinedCanvas = document.createElement('canvas');
+        const ctx = combinedCanvas.getContext('2d');
+        
+        // Set canvas dimensions (QR + space for text)
+        combinedCanvas.width = 300;
+        combinedCanvas.height = 350;
+        
+        // Draw background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+        
+        // Draw QR code (centered)
+        const qrWidth = 200;
+        const qrHeight = 200;
+        const qrX = (combinedCanvas.width - qrWidth) / 2;
+        const qrY = 20;
+        ctx.drawImage(canvas, qrX, qrY, qrWidth, qrHeight);
+        
+        // Draw decorative elements
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(20, qrY + qrHeight + 20);
+        ctx.lineTo(combinedCanvas.width - 20, qrY + qrHeight + 20);
+        ctx.stroke();
+        
+        // Draw text
+        ctx.font = 'bold 16px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'center';
+        
+        const lines = text.split('\n');
+        const lineHeight = 25;
+        const startY = qrY + qrHeight + 50;
+        
+        lines.forEach((line, index) => {
+          ctx.fillText(line, combinedCanvas.width / 2, startY + (index * lineHeight));
+        });
+        
+        // Draw SpiderTrader logo
+        ctx.font = 'bold 20px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillText('SpiderTrader', combinedCanvas.width / 2, startY + 80);
+        
+        // Draw decorative border
+        ctx.strokeStyle = '#C0C0C0';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(5, 5, combinedCanvas.width - 10, combinedCanvas.height - 10);
+        
+        // Convert to data URL
+        const dataURL = combinedCanvas.toDataURL('image/png');
+        
+        // Create download link
         const link = document.createElement('a');
         link.href = dataURL;
-        link.download = 'license-qr-code.png';
+        link.download = `spidertrader-license-${currentAccountNumber}.png`;
         link.click();
         
-        showNotification('✅ QR Code downloaded!', 'success');
+        showNotification('✅ License downloaded!', 'success');
       } catch (error) {
-        showNotification('❌ Failed to download QR Code', 'error');
+        showNotification('❌ Failed to download license', 'error');
       }
     }
     
