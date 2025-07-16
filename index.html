@@ -1268,8 +1268,31 @@
     
     // Download QR Code with text as a banner
  function downloadQRWithText() {
+
+         logo.onload = () => {
+    // …
+    // اطلاعات حساب
+    ctx.font = '16px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Account Number:', 320, 220);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillText(currentAccountNumber, 320 + 150, 220);  // <— از currentAccountNumber استفاده کنید
+    
+    // کلید لایسنس
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('License Key:', 320, 260);
+    ctx.fillStyle = '#e2e8f0';
+    const shortKey = lastEncryptedRaw.substring(0, 8) 
+                   + '...' 
+                   + lastEncryptedRaw.substring(lastEncryptedRaw.length - 8);
+    ctx.fillText(shortKey, 320 + 150, 260);  // <— از lastEncryptedRaw استفاده کنید
+    
+    // …
+  };
          if (!qrCodeInstance) return;
   try {
+
+          
     const width = 800;
     const height = 400;
     const logoUrl = 'https://i.ibb.co/0G3Yr0X/spidertrade.png';
