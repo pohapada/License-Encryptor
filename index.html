@@ -1267,54 +1267,29 @@
     }
     
     // Download QR Code with text as a banner
- function downloadQRWithText() {
-
-         logo.onload = () => {
-    // …
-    // اطلاعات حساب
-    ctx.font = '16px "Segoe UI", sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Account Number:', 320, 220);
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillText(currentAccountNumber, 320 + 150, 220);  // <— از currentAccountNumber استفاده کنید
-    
-    // کلید لایسنس
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('License Key:', 320, 260);
-    ctx.fillStyle = '#e2e8f0';
-    const shortKey = lastEncryptedRaw.substring(0, 8) 
-                   + '...' 
-                   + lastEncryptedRaw.substring(lastEncryptedRaw.length - 8);
-    ctx.fillText(shortKey, 320 + 150, 260);  // <— از lastEncryptedRaw استفاده کنید
-    
-    // …
-  };
-         if (!qrCodeInstance) return;
+function downloadQRWithText() {
+  if (!qrCodeInstance) return;
+  
   try {
-
-          
     const width = 800;
     const height = 400;
     const logoUrl = 'https://i.ibb.co/0G3Yr0X/spidertrade.png';
     
+    // 1. ساخت canvas و زمینه
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
-    
-    // پس‌زمینه گرادیانت
     const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, '#1a1a2e');
     gradient.addColorStop(1, '#16213e');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
     
-    // کانتینر اصلی با گوشه‌های گرد
+    // 2. کانتینر اصلی گرد
     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
     ctx.lineWidth = 1;
-    
-    // تابع ساده برای گوشه‌های گرد
     const drawRoundedRect = (x, y, w, h, r) => {
       ctx.beginPath();
       ctx.moveTo(x + r, y);
@@ -1328,23 +1303,21 @@
       ctx.quadraticCurveTo(x, y, x + r, y);
       ctx.closePath();
     };
-    
     drawRoundedRect(40, 40, width - 80, height - 80, 12);
     ctx.fill();
     ctx.stroke();
     
-    // بارگذاری لوگو
+    // 3. بارگذاری لوگو
     const logo = new Image();
     logo.crossOrigin = 'Anonymous';
     logo.src = logoUrl;
-    
-    // پس از بارگذاری لوگو ادامه می‌دهیم
     logo.onload = () => {
-      // لوگوی بالا-راست
+      
+      // 3.1 لوگوی بالا-راست
       const logoSize = 80;
       ctx.drawImage(logo, width - 40 - logoSize - 20, 60, logoSize, logoSize);
       
-      // هدر اصلی
+      // 3.2 هدر و زیرعنوان
       ctx.font = 'bold 34px "Segoe UI", sans-serif';
       const textGradient = ctx.createLinearGradient(0, 0, 300, 0);
       textGradient.addColorStop(0, '#38bdf8');
@@ -1352,29 +1325,21 @@
       ctx.fillStyle = textGradient;
       ctx.fillText('SpiderTrader Pro', 100, 90);
       
-      // زیرعنوان
       ctx.font = '16px "Segoe UI", sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.fillText('METATRADER LICENSE', 100, 120);
       
-      // جداکننده
+      // 3.3 جداکننده
       ctx.beginPath();
       ctx.moveTo(100, 140);
       ctx.lineTo(400, 140);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
       ctx.stroke();
       
-      // استفاده از QR کد موجود در صفحه
+      // 3.4 QR کد
       const qrCanvas = document.querySelector('#qrcode canvas');
-      if (!qrCanvas) {
-        console.error('QR canvas not found');
-        return;
-      }
-      
-      // رسم QR کد
-      const qrSize = 180;
-      const qrX = 100;
-      const qrY = 160;
+      if (!qrCanvas) return console.error('QR canvas not found');
+      const qrSize = 180, qrX = 100, qrY = 160;
       ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       
       // لوگوی وسط QR
@@ -1389,29 +1354,31 @@
       
       // برچسب زیر QR
       ctx.font = 'bold 14px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillStyle = '#38aef8';
       ctx.textAlign = 'center';
       ctx.fillText('SCAN TO ACTIVATE', qrX + qrSize/2, qrY + qrSize + 20);
       ctx.textAlign = 'left';
       
-      // اطلاعات لایسنس
+      // 4. اطلاعات لایسنس: توجه کنید نام متغیرها را همین‌جا اصلاح کرده‌ایم
       ctx.font = 'bold 22px "Segoe UI", sans-serif';
       ctx.fillStyle = '#e2e8f0';
       ctx.fillText('LICENSE INFORMATION', 320, 180);
       
-      // اطلاعات حساب
+      // شماره حساب
       ctx.font = '16px "Segoe UI", sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.fillText('Account Number:', 320, 220);
       ctx.fillStyle = '#e2e8f0';
-      ctx.fillText(accountNumber, 320 + 150, 220);
+      ctx.fillText(currentAccountNumber, 320 + 150, 220);  // ← اینجا
       
-      // کلید لایسنس
+      // کلید لایسنس (خلاصه)
       ctx.fillStyle = '#94a3b8';
       ctx.fillText('License Key:', 320, 260);
       ctx.fillStyle = '#e2e8f0';
-      const shortKey = licenseKey.substring(0, 8) + '...' + licenseKey.substring(licenseKey.length - 8);
-      ctx.fillText(shortKey, 320 + 150, 260);
+      const shortKey = lastEncryptedRaw.substring(0, 8)
+                     + '...'
+                     + lastEncryptedRaw.substring(lastEncryptedRaw.length - 8);
+      ctx.fillText(shortKey, 320 + 150, 260);            // ← اینجا
       
       // پلتفرم
       ctx.fillStyle = '#94a3b8';
@@ -1419,7 +1386,7 @@
       ctx.fillStyle = '#e2e8f0';
       ctx.fillText('MetaTrader 5', 320 + 150, 300);
       
-      // فوتر
+      // 5. فوتر
       ctx.beginPath();
       ctx.moveTo(40, height - 50);
       ctx.lineTo(width - 40, height - 50);
@@ -1429,28 +1396,32 @@
       ctx.font = '14px "Segoe UI", sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.textAlign = 'center';
-      ctx.fillText('Telegram: @SpiderTraderSupport | Email: support@spidertrader.com | Web: spidertrader.com', width/2, height - 20);
+      ctx.fillText(
+        'Telegram: @SpiderTraderSupport | Email: support@spidertrader.com | Web: spidertrader.com',
+        width / 2,
+        height - 20
+      );
       
-      // دانلود تصویر
+      // 6. دانلود
       const dataURL = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataURL;
-      link.download = `spidertrader-license-${accountNumber}.png`;
+      link.download = `spidertrader-license-${currentAccountNumber}.png`;  // ← اینجا هم اصلاح شد
       link.click();
       
-      // نمایش نوتیفیکیشن (اگر تابع موجود باشد)
+      // نوتیفیکیشن
       if (typeof showNotification === 'function') {
         showNotification('✅ License downloaded!', 'success');
       }
     };
     
-    // مدیریت خطای بارگذاری لوگو
     logo.onerror = () => {
       console.error('Failed to load logo');
       if (typeof showNotification === 'function') {
         showNotification('❌ Failed to download license', 'error');
       }
     };
+    
   } catch (error) {
     console.error('Error generating banner:', error);
     if (typeof showNotification === 'function') {
@@ -1458,7 +1429,7 @@
     }
   }
 }
-    
+
     // PWA Installation
     function installPWA() {
       if (deferredPrompt) {
