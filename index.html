@@ -1324,12 +1324,21 @@ function downloadQRWithText() {
 
     // QR Code
     const qrCanvas = document.querySelector('#qrcode canvas');
-    ctx.drawImage(qrCanvas, 85, 140, 180, 180);
+   const qrX = 85;
+const qrY = 140;
+const qrSize = 180;
+const border = 6; // مقدار حاشیه سفید
+
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(qrX - border, qrY - border, qrSize + border * 2, qrSize + border * 2);
+
+// سپس رسم QR روی آن
+ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
 
     // لوگو
     if (!skipLogo) {
       ctx.drawImage(logo, W - 140, 60, 80, 80);
-      ctx.drawImage(logo, 85 + 90 - 20, 140 + 90 - 20, 40, 40);
+      //ctx.drawImage(logo, 85 + 90 - 20, 140 + 90 - 20, 40, 40);
     }
 
     // عنوان
