@@ -1318,32 +1318,14 @@ function downloadQRWithText() {
     ctx.fill(); ctx.stroke();
 
     // QR Code
-const qrCanvas = document.querySelector('#qrcode canvas');
-const ctx = qrCanvas.getContext('2d');
-
-const qrX = 85;
+    const qrCanvas = document.querySelector('#qrcode canvas');
+   const qrX = 85;
 const qrY = 140;
 const qrSize = 180;
-const border = 6;
-const radius = 12; // شعاع گوشه‌ها
-
-function drawRoundedRect(ctx, x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
-  ctx.fill();
-}
+const border = 6; // مقدار حاشیه سفید
 
 ctx.fillStyle = '#ffffff';
-drawRoundedRect(ctx, qrX - border, qrY - border, qrSize + border * 2, qrSize + border * 2, radius);
+ctx.fillRect(qrX - border, qrY - border, qrSize + border * 2, qrSize + border * 2);
 
 // سپس رسم QR روی آن
 ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
