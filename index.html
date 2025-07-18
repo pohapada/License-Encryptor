@@ -1362,11 +1362,11 @@ ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       ctx.fillStyle = '#94a3b8'; ctx.fillText(label, 320, y);
       ctx.fillStyle = '#e2e8f0'; ctx.fillText(value, 320 + ctx.measureText(label).width, y);
     }
-    const accountText = (currentAccountNumber == 0) ? 'Demo' : currentAccountNumber;
+    const accountText = (currentAccountNumber == 0) ? ' Demo' : currentAccountNumber;
     drawPair('Account Number:', accountText, 220);
-    const shortKey = lastEncryptedRaw.slice(0,8) + '...' + lastEncryptedRaw.slice(-8);
+    const shortKey = " "+lastEncryptedRaw.slice(0,7) + '.....' + lastEncryptedRaw.slice(-7);
     drawPair('License Key:', shortKey, 260);
-    drawPair('Platform:', 'MetaTrader 5', 300);
+    drawPair('Platform:', ' MetaTrader 5', 300);
 
     // فوتر
     ctx.beginPath(); ctx.moveTo(40, H-50); ctx.lineTo(W-40, H-50);
