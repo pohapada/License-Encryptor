@@ -881,10 +881,6 @@ background: var(--error);
     <i class="fas fa-download"></i>
     Download License
   </button>
-  <button class="btn-modal btn-close-modal" onclick="closeQRModal()">
-    <i class="fas fa-times"></i>
-    Close
-  </button>
 </div>
 </div>
 </div>
@@ -1251,7 +1247,7 @@ qrCodeInstance = new QRCode(qrElement, {
 
 // Update license text
 document.getElementById('licenseText').textContent = 
-  `SpiderTrader license key: ${currentAccountNumber}`;
+  `SpiderTrader license key: ${(currentAccountNumber == 0 ? 'demo' : currentAccountNumber)}`;
 
 // Show modal
 document.getElementById('qrModal').classList.add('active');
@@ -1365,8 +1361,8 @@ ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       ctx.fillStyle = '#94a3b8'; ctx.fillText(label, 320, y);
       ctx.fillStyle = '#e2e8f0'; ctx.fillText(value, 320 + ctx.measureText(label).width, y);
     }
-    const accountText = (currentAccountNumber == 0) ? 'Demo' : currentAccountNumber;
-    drawPair('Account Number:', accountText, 220);
+    
+    drawPair('Account Number:', (currentAccountNumber == 0 ? 'demo' : currentAccountNumber), 220);
     const shortKey = lastEncryptedRaw.slice(0,8) + '...' + lastEncryptedRaw.slice(-8);
     drawPair('License Key:', shortKey, 260);
     drawPair('Platform:', 'MetaTrader 5', 300);
