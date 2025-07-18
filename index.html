@@ -1248,7 +1248,7 @@ qrCodeInstance = new QRCode(qrElement, {
 
 // Update license text
 document.getElementById('licenseText').textContent = 
-  `SpiderTrader license key: ${currentAccountNumber}`;
+  `SpiderTrader license key: ${(currentAccountNumber == 0) ? ' Demo' : currentAccountNumber}`;
 
 // Show modal
 document.getElementById('qrModal').classList.add('active');
