@@ -1318,14 +1318,17 @@ function downloadQRWithText() {
     ctx.fill(); ctx.stroke();
 
     // QR Code
-    const qrCanvas = document.querySelector('#qrcode canvas');
-   const qrX = 85;
+const qrCanvas = document.querySelector('#qrcode canvas');
+const ctx = qrCanvas.getContext('2d');
+
+const qrX = 85;
 const qrY = 140;
 const qrSize = 180;
-const border = 6; // مقدار حاشیه سفید
+const border = 6;
+const radius = 12; // شعاع گوشه‌ها
 
 ctx.fillStyle = '#ffffff';
-ctx.fillRect(qrX - border, qrY - border, qrSize + border * 2, qrSize + border * 2);
+drawRoundedRect(ctx, qrX - border, qrY - border, qrSize + border * 2, qrSize + border * 2, radius);
 
 // سپس رسم QR روی آن
 ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
