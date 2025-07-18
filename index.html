@@ -1,3 +1,4 @@
+
 <script type="text/javascript">
   var gk_isXlsx = false;
   var gk_xlsxFileLookup = {};
@@ -560,19 +561,20 @@ max-width: 400px;
 text-align: center;
 position: relative;
 box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-border: 2px solid var(--silver);
+border: 2px solid var(--gold);
 overflow: hidden;
 }
 
 .qr-modal-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, var(--silver), var(--silver));
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+height: 5px;
+background: linear-gradient(90deg, var(--gold), var(--silver));
 }
+
 .qr-modal-header {
 margin-bottom: 20px;
 position: relative;
@@ -583,7 +585,7 @@ font-size: 24px;
 font-weight: 700;
 color: var(--text);
 margin-bottom: 10px;
-background: linear-gradient(45deg, var(--silver), var(--silver));
+background: linear-gradient(45deg, var(--gold), var(--silver));
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;
 }
@@ -615,7 +617,7 @@ color: var(--text);
 padding: 12px;
 border-radius: 8px;
 background: rgba(255, 215, 0, 0.1);
-border: 1px solid var(--silver);
+border: 1px solid var(--gold);
 font-family: 'Courier New', monospace;
 }
 
@@ -641,7 +643,7 @@ gap: 8px;
 }
 
 .btn-download {
-background: linear-gradient(45deg, var(--silver), var(--gold));
+background: linear-gradient(45deg, var(--gold), var(--silver));
 color: #333;
 }
 
@@ -879,6 +881,10 @@ background: var(--error);
   <button class="btn-modal btn-download" onclick="downloadQRWithText()">
     <i class="fas fa-download"></i>
     Download License
+  </button>
+  <button class="btn-modal btn-close-modal" onclick="closeQRModal()">
+    <i class="fas fa-times"></i>
+    Close
   </button>
 </div>
 </div>
@@ -1246,7 +1252,7 @@ qrCodeInstance = new QRCode(qrElement, {
 
 // Update license text
 document.getElementById('licenseText').textContent = 
-  `SpiderTrader license key: ${(currentAccountNumber == 0 ? ' Demo' : currentAccountNumber)}`;
+  `SpiderTrader license key: ${currentAccountNumber}`;
 
 // Show modal
 document.getElementById('qrModal').classList.add('active');
@@ -1360,8 +1366,8 @@ ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       ctx.fillStyle = '#94a3b8'; ctx.fillText(label, 320, y);
       ctx.fillStyle = '#e2e8f0'; ctx.fillText(value, 320 + ctx.measureText(label).width, y);
     }
-    
-    drawPair('Account Number:', (currentAccountNumber == 0 ? ' Demo' : currentAccountNumber), 220);
+    const accountText = (currentAccountNumber == 0) ? 'Demo' : currentAccountNumber;
+    drawPair('Account Number:', accountText, 220);
     const shortKey = lastEncryptedRaw.slice(0,8) + '...' + lastEncryptedRaw.slice(-8);
     drawPair('License Key:', shortKey, 260);
     drawPair('Platform:', 'MetaTrader 5', 300);
