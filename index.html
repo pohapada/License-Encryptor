@@ -1247,7 +1247,7 @@ qrCodeInstance = new QRCode(qrElement, {
 
 // Update license text
 document.getElementById('licenseText').textContent = 
-  `SpiderTrader license key: ${(currentAccountNumber == 0 ? 'demo' : currentAccountNumber)}`;
+  `SpiderTrader license key: ${(currentAccountNumber == 0 ? ' Demo' : currentAccountNumber)}`;
 
 // Show modal
 document.getElementById('qrModal').classList.add('active');
@@ -1362,7 +1362,7 @@ ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       ctx.fillStyle = '#e2e8f0'; ctx.fillText(value, 320 + ctx.measureText(label).width, y);
     }
     
-    drawPair('Account Number:', (currentAccountNumber == 0 ? 'demo' : currentAccountNumber), 220);
+    drawPair('Account Number:', (currentAccountNumber == 0 ? ' Demo' : currentAccountNumber), 220);
     const shortKey = lastEncryptedRaw.slice(0,8) + '...' + lastEncryptedRaw.slice(-8);
     drawPair('License Key:', shortKey, 260);
     drawPair('Platform:', 'MetaTrader 5', 300);
