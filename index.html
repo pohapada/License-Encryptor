@@ -1419,8 +1419,8 @@ function downloadQRWithText() {
     ctx.fillText('LICENSE INFORMATION', 320, 180);
     ctx.font = '16px "Segoe UI"';
     const acct = currentAccountNumber == 0 ? 'Demo' : currentAccountNumber;
-    const sk = lastEncryptedRaw ? lastEncryptedRaw.slice(0,7) + '…' + lastEncryptedRaw.slice(-7) : '';
-    [['Account Number:', acct, 220], ['License Key:', sk, 260], ['Platform:', 'MetaTrader 5', 300]]
+    //const sk = lastEncryptedRaw ? lastEncryptedRaw.slice(0,7) + '…' + lastEncryptedRaw.slice(-7) : '';
+    [['Account Number:', acct, 220], ['Expiration Date:', lastExpirationDate, 260], ['Platform:', 'MetaTrader 5', 300]]
       .forEach(([l,v,y])=>{ctx.fillStyle='#94a3b8';ctx.fillText(l,320,y);ctx.fillStyle='#e2e8f0';ctx.fillText(v,320+ctx.measureText(l).width,y);} );
 
     // فوتر
