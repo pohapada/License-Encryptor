@@ -899,6 +899,7 @@ background: var(--error);
 // Initialize variables
 let lastEncryptedRaw = '';
 let lastEncryptedTelegram = '';
+  let lastExpirationDate = ''; // <-- این خط را اضافه کنید
 let lastMode = '';
 let devMode = false;
 let isKeyLocked = false;
@@ -1066,6 +1067,7 @@ return CryptoJS.enc.Utf8.parse(k.padEnd(16, '\0').slice(0, 16));
 }
 
 // Encryption function
+  let lastExpirationDate = ''; // اضافه کردن متغیر جدید
 function encrypt() {
 const num = document.getElementById('number').value.trim();
 const months = parseInt(document.getElementById('duration').value, 10);
@@ -1120,7 +1122,13 @@ try {
   
   lastEncryptedTelegram = '`' + lastEncryptedRaw + '`';
   lastMode = 'encrypt';
-  
+    const dateOnly = new Date(ts * 1000).toLocaleDateString('en-US', {
+    day: '2-digit',   
+    month: '2-digit',  
+    year: 'numeric'
+  });
+  // ذخیره تاریخ برای استفاده در بنر
+  lastExpirationDate = dateOnly;
   const dateStr = new Date(ts * 1000).toLocaleString();
   outputEl.textContent = `✅ ENCRYPTED SUCCESSFULLY\n\n🔑 Encrypted License Key:\n${lastEncryptedRaw}\n\n⏰ Expiration Date:\n${dateStr}\n\n⌛ Unix Timestamp: ${ts}`;
   outputEl.classList.add('success');
@@ -1420,8 +1428,16 @@ function downloadQRWithText() {
     ctx.font = '16px "Segoe UI"';
     const acct = currentAccountNumber == 0 ? 'Demo' : currentAccountNumber;
     const sk = lastEncryptedRaw ? lastEncryptedRaw.slice(0,7) + '…' + lastEncryptedRaw.slice(-7) : '';
-    [['Account Number:', acct, 220], ['License Key:', sk, 260], ['Platform:', 'MetaTrader 5', 300]]
-      .forEach(([l,v,y])=>{ctx.fillStyle='#94a3b8';ctx.fillText(l,320,y);ctx.fillStyle='#e2e8f0';ctx.fillText(v,320+ctx.measureText(l).width,y);} );
+     [['Account Number:', acct, 220], 
+     ['Expiration Date:', lastExpirationDate, 260], // نمایش تاریخ انقضا
+     ['Platform:', 'MetaTrader 5', 300]]
+      .forEach(([l, v, y]) => {
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText(l, 320, y);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText(v, 320 + ctx.measureText(l).width, y);
+      });
+
 
     // فوتر
     ctx.beginPath(); ctx.moveTo(40,H-50); ctx.lineTo(W-40,H-50);
