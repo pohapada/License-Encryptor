@@ -79,11 +79,7 @@
 --gold: #FFD700;
 --silver: #C0C0C0;
 }
-.btn-clear-cache {
-  background: #ef4444;
-  color: #fff;
-  display: none;
-}
+
 body.dark {
 --primary: #60a5fa;
 --primary-light: #1e3a8a;
@@ -750,6 +746,11 @@ z-index: 100;
 .offline-status.offline {
 background: var(--error);
 }
+  .btn-clear-cache {
+    background: var(--error);
+    color: white;
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -841,13 +842,14 @@ background: var(--error);
     <i class="fas fa-qrcode"></i>
     QR Code
   </button>
-  <button class="btn-clear-cache" onclick="clearAppCache()" id="btnClearCache">
-  <i class="fas fa-broom"></i>
-  Clear Cache
-</button>
+  
   <button class="btn-disable-dev" onclick="disableDeveloperMode()" id="btnDisableDev">
     <i class="fas fa-times-circle"></i>
     Disable Dev Mode
+  </button>
+  <button class="btn-clear-cache" onclick="clearCache()" id="btnClearCache">
+    <i class="fas fa-trash-alt"></i>
+    Clear Cache
   </button>
 </div>
 
@@ -1008,26 +1010,55 @@ devMode = false;
 updateDeveloperModeUI();
 showNotification('🛠️ Developer Mode Deactivated', 'warning');
 }
+// تابع جدید برای پاک کردن کش
+function clearCache() {
+  // پاک کردن ذخیره‌سازی محلی
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // پاک کردن کش سرویس ورکر
+  if ('serviceWorker' in navigator && 'caches' in window) {
+    caches.keys().then(cacheNames => {
+      cacheNames.forEach(cacheName => {
+        caches.delete(cacheName);
+      });
+    });
+  }
+  
+  // پاک کردن وضعیت کلید ذخیره شده
+  document.getElementById('storageStatus').style.display = 'none';
+  
+  showNotification('✅ Cache cleared successfully!', 'success');
+  
+  // ریلود صفحه بعد از 1.5 ثانیه
+  setTimeout(() => {
+    location.reload();
+  }, 1500);
+}
 
-// Update Developer Mode UI
+// تابع به‌روزرسانی حالت توسعه‌دهنده
 function updateDeveloperModeUI() {
-const devInfo = document.getElementById('devInfo');
-const durationGroup = document.getElementById('durationGroup');
-const unixGroup = document.getElementById('unixGroup');
-const btnDisableDev = document.getElementById('btnDisableDev');
+  const devInfo = document.getElementById('devInfo');
+  const durationGroup = document.getElementById('durationGroup');
+  const unixGroup = document.getElementById('unixGroup');
+  const btnDisableDev = document.getElementById('btnDisableDev');
+  const btnClearCache = document.getElementById('btnClearCache'); // عنصر جدید
+  
+  if (devMode) {
+    devInfo.style.display = 'block';
+    durationGroup.style.display = 'none';
+    unixGroup.style.display = 'block';
+    btnDisableDev.style.display = 'flex';
+    btnClearCache.style.display = 'flex'; // نمایش دکمه
+  } else {
+    devInfo.style.display = 'none';
+    durationGroup.style.display = 'block';
+    unixGroup.style.display = 'none';
+    btnDisableDev.style.display = 'none';
+    btnClearCache.style.display = 'none'; // مخفی کردن دکمه
+  }
+}
 
-if (devMode) {
-  devInfo.style.display = 'block';
-  durationGroup.style.display = 'none';
-  unixGroup.style.display = 'block';
-  btnDisableDev.style.display = 'flex';
-} else {
-  devInfo.style.display = 'none';
-  durationGroup.style.display = 'block';
-  unixGroup.style.display = 'none';
-  btnDisableDev.style.display = 'none';
-}
-}
 
 // Pad key to 16 characters
 function padKey(k) {
@@ -1530,33 +1561,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 });
-  async function clearAppCache() {
-  // پاک‌سازی Cache API
-  const names = await caches.keys();
-  await Promise.all(names.map(name => caches.delete(name)));
-
-  // پاک‌سازی localStorage و sessionStorage
-  localStorage.clear();
-  sessionStorage.clear();
-
-  // حذف IndexedDB (اگر پشتیبانی شود)
-  if (indexedDB.databases) {
-    const dbs = await indexedDB.databases();
-    dbs.forEach(db => indexedDB.deleteDatabase(db.name));
-  }
-
-  // Unregister Service Workers
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (let reg of registrations) {
-      await reg.unregister();
-    }
-  }
-
-  showNotification('🔄 Cache cleared. Reloading...', 'warning');
-  setTimeout(() => location.reload(true), 1000);
-}
-
 </script>
 </body>
 </html>
