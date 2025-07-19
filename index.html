@@ -79,7 +79,11 @@
 --gold: #FFD700;
 --silver: #C0C0C0;
 }
-
+.btn-clear-cache {
+  background: #ef4444;
+  color: #fff;
+  display: none;
+}
 body.dark {
 --primary: #60a5fa;
 --primary-light: #1e3a8a;
@@ -837,7 +841,10 @@ background: var(--error);
     <i class="fas fa-qrcode"></i>
     QR Code
   </button>
-  
+  <button class="btn-clear-cache" onclick="clearAppCache()" id="btnClearCache">
+  <i class="fas fa-broom"></i>
+  Clear Cache
+</button>
   <button class="btn-disable-dev" onclick="disableDeveloperMode()" id="btnDisableDev">
     <i class="fas fa-times-circle"></i>
     Disable Dev Mode
@@ -1523,6 +1530,33 @@ if ('serviceWorker' in navigator) {
     });
 }
 });
+  async function clearAppCache() {
+  // پاک‌سازی Cache API
+  const names = await caches.keys();
+  await Promise.all(names.map(name => caches.delete(name)));
+
+  // پاک‌سازی localStorage و sessionStorage
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // حذف IndexedDB (اگر پشتیبانی شود)
+  if (indexedDB.databases) {
+    const dbs = await indexedDB.databases();
+    dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+  }
+
+  // Unregister Service Workers
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (let reg of registrations) {
+      await reg.unregister();
+    }
+  }
+
+  showNotification('🔄 Cache cleared. Reloading...', 'warning');
+  setTimeout(() => location.reload(true), 1000);
+}
+
 </script>
 </body>
 </html>
