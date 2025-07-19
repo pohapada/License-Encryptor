@@ -1122,13 +1122,12 @@ try {
   
   lastEncryptedTelegram = '`' + lastEncryptedRaw + '`';
   lastMode = 'encrypt';
-    const dateOnly = new Date(ts * 1000).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: '2-digit', 
-      day: '2-digit'  
-  });
-  // ذخیره تاریخ برای استفاده در بنر
-  lastExpirationDate = dateOnly;
+const expirationDate = new Date(ts * 1000);
+const year = expirationDate.getFullYear();
+const month = String(expirationDate.getMonth() + 1).padStart(2, '0');
+const day = String(expirationDate.getDate()).padStart(2, '0');
+const dateOnly = `${year}-${month}-${day}`;
+lastExpirationDate = dateOnly;
   const dateStr = new Date(ts * 1000).toLocaleString();
   outputEl.textContent = `✅ ENCRYPTED SUCCESSFULLY\n\n🔑 Encrypted License Key:\n${lastEncryptedRaw}\n\n⏰ Expiration Date:\n${dateStr}\n\n⌛ Unix Timestamp: ${ts}`;
   outputEl.classList.add('success');
