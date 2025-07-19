@@ -1064,7 +1064,7 @@ function updateDeveloperModeUI() {
 function padKey(k) {
 return CryptoJS.enc.Utf8.parse(k.padEnd(16, '\0').slice(0, 16));
 }
-
+let lastExpirationDate = ''; // اضافه کردن متغیر جدید
 // Encryption function
 function encrypt() {
 const num = document.getElementById('number').value.trim();
@@ -1076,7 +1076,9 @@ const btnCopy = document.getElementById('btnCopy');
 const btnQR = document.getElementById('btnQR');
 const numberError = document.getElementById('numberError');
 const keyError = document.getElementById('keyError');
-
+  const dateStr = new Date(ts * 1000).toLocaleString();
+  lastExpirationDate = dateStr; // ذخیره تاریخ انقضا
+  
 // Reset errors
 numberError.style.display = 'none';
 keyError.style.display = 'none';
