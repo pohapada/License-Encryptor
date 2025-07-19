@@ -1280,140 +1280,123 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
 
 function downloadQRWithText() {
   if (!qrCodeInstance) return;
+
   const W = 800, H = 400;
   const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // مسیر محلی لوگو
   const logoUrl = './spider_logo.png';
   const logo = new Image();
   logo.onload = () => buildBanner(false);
-  logo.onerror = () => {
-    console.warn('⚠️ بارگذاری لوگو ناموفق! بنر بدون لوگو ساخته می‌شود.');
-    buildBanner(true);
-  };
+  logo.onerror = () => buildBanner(true);
   logo.src = logoUrl;
 
+  function drawRoundedRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
   function buildBanner(skipLogo) {
-    // سایه‌ی ملایم کل بنر
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 20;
+    // پس‌زمینه گرادیان
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#1a1a2e');
+    bg.addColorStop(1, '#16213e');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
 
-    // پس‌زمینه گرادیانت
-    const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, '#1a1a2e');
-    grad.addColorStop(1, '#16213e');
-    ctx.fillStyle = grad;
-    drawRoundedRect(ctx, 20, 20, W - 40, H - 40, 16);
-    ctx.fill();
-
-    // stroke گرادیان برای قاب اصلی
-    ctx.shadowBlur = 0;
-    const strokeGrad = ctx.createLinearGradient(20, 20, W - 20, H - 20);
-    strokeGrad.addColorStop(0, 'rgba(56,189,248,0.3)');
-    strokeGrad.addColorStop(1, 'rgba(129,140,248,0.3)');
-    ctx.strokeStyle = strokeGrad;
-    ctx.lineWidth = 2;
-    drawRoundedRect(ctx, 20, 20, W - 40, H - 40, 16);
-    ctx.stroke();
-
-    // خطوط شبکه‌ی پس‌زمینه
-    ctx.shadowColor = 'transparent';
-    ctx.strokeStyle = 'rgba(56,189,248,0.08)';
+    // تار عنکبوت در پس‌زمینه و زیر مستطیل داخلی
+    ctx.save();
+    // قرار دادن مرکز تار در مرکز بنر
+    ctx.translate(W / 2, H / 2);
+    // کمی چرخش برای زاویه طبیعی
+    ctx.rotate(-Math.PI / 6);
+    const maxR = Math.hypot(W, H);
+    const rings = 6, spokes = 16;
+    ctx.strokeStyle = 'rgba(59,207,248,0.35)';
     ctx.lineWidth = 1;
-    for (let x = 0; x <= W; x += 40) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    ctx.shadowBlur = 2;
+    ctx.shadowColor = 'rgba(56,189,248,0.3)';
+    // حلقه‌ها
+    for (let i = 1; i <= rings; i++) {
+      ctx.beginPath();
+      ctx.arc(0, 0, (maxR / rings) * i, 0, 2 * Math.PI);
+      ctx.stroke();
     }
-    for (let y = 0; y <= H; y += 40) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    // خطوط شعاعی
+    for (let i = 0; i < spokes; i++) {
+      const ang = (2 * Math.PI / spokes) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(ang) * maxR, Math.sin(ang) * maxR);
+      ctx.stroke();
     }
+    ctx.restore();
+    ctx.shadowBlur = 0;
 
-    // QR Code با حاشیه‌ی سفید گرد
-    const qrCanvas = document.querySelector('#qrcode canvas');
-    const qrX = 85, qrY = 140, qrSize = 180, border = 6;
-    ctx.fillStyle = '#ffffff';
-    drawRoundedRect(ctx,
-      qrX - border,
-      qrY - border,
-      qrSize + border * 2,
-      qrSize + border * 2,
-      12
-    );
-    ctx.fill();
-    ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+    // هاله نور ملایم
+    const glow = ctx.createRadialGradient(W/2, H/2, H*0.5, W/2, H/2, W);
+    glow.addColorStop(0, 'rgba(56,189,248,0)');
+    glow.addColorStop(1, 'rgba(56,189,248,0.12)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // کادر مرکزی شفاف
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    ctx.strokeStyle = 'rgba(56,189,248,0.25)';
+    ctx.lineWidth = 1;
+    drawRoundedRect(ctx, 40, 40, W - 80, H - 80, 12);
+    ctx.fill(); ctx.stroke();
+
+    // QR
+    const qr = document.querySelector('#qrcode canvas');
+    const qx = 85, qy = 140, qs = 180;
+    drawRoundedRect(ctx, qx-6, qy-6, qs+12, qs+12, 12);
+    ctx.fillStyle = '#fff'; ctx.fill(); ctx.drawImage(qr, qx, qy, qs, qs);
 
     // لوگو
-    if (!skipLogo) {
-      ctx.drawImage(logo, W - 140, 60, 80, 80);
-      // لوگوی وسط QR اگر خواستی فعال کن:
-      // ctx.drawImage(logo, qrX + qrSize/2 - 20, qrY + qrSize/2 - 20, 40, 40);
-    }
+    if (!skipLogo) ctx.drawImage(logo, W - 140, 60, 80, 80);
 
-    // عنوان
-    ctx.font = 'bold 34px "Segoe UI", sans-serif';
-    const tgrad = ctx.createLinearGradient(0, 0, 300, 0);
-    tgrad.addColorStop(0, '#38bdf8'); tgrad.addColorStop(1, '#818cf8');
-    ctx.fillStyle = tgrad;
-    ctx.fillText('SpiderTrader Pro', 100, 90);
-
-    // زیرعنوان
-    ctx.font = '16px "Segoe UI"';
-    ctx.fillStyle = '#94a3b8';
+    // متن
+    ctx.font = 'bold 34px "Segoe UI"';
+    const titleGrad = ctx.createLinearGradient(100, 0, 400, 0);
+    titleGrad.addColorStop(0, '#38bdf8'); titleGrad.addColorStop(1, '#818cf8');
+    ctx.fillStyle = titleGrad; ctx.fillText('SpiderTrader Pro', 100, 90);
+    ctx.font = '16px "Segoe UI"'; ctx.fillStyle = '#94a3b8';
     ctx.fillText('METATRADER LICENSE', 100, 120);
-
-    // برچسب زیر QR
-    ctx.font = 'bold 14px "Segoe UI"';
-    ctx.fillStyle = '#38bdf8';
-    ctx.textAlign = 'center';
-    ctx.fillText('SCAN TO ACTIVATE', qrX + qrSize/2, qrY + qrSize + 20);
+    ctx.font = 'bold 14px "Segoe UI"'; ctx.textAlign = 'center'; ctx.fillStyle = '#38bdf8';
+    ctx.fillText('SCAN TO ACTIVATE', qx + qs/2, qy + qs + 20);
     ctx.textAlign = 'left';
-
-    // اطلاعات لایسنس
-    ctx.font = 'bold 22px "Segoe UI"';
-    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 22px "Segoe UI"'; ctx.fillStyle = '#e2e8f0';
     ctx.fillText('LICENSE INFORMATION', 320, 180);
-
     ctx.font = '16px "Segoe UI"';
-    function drawPair(icon, label, value, y) {
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillText(icon, 320, y);
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText(label, 340, y);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillText(value, 340 + ctx.measureText(label).width, y);
-    }
-    const accountText = (currentAccountNumber == 0) ? 'Demo' : currentAccountNumber;
-    drawPair('🆔', 'Account Number:', accountText, 220);
-    const shortKey = lastEncryptedRaw.slice(0,7) + '.....' + lastEncryptedRaw.slice(-7);
-    drawPair('🔑', 'License Key:', shortKey, 260);
-    drawPair('💻', 'Platform:', 'MetaTrader 5', 300);
+    const acct = currentAccountNumber == 0 ? 'Demo' : currentAccountNumber;
+    const sk = lastEncryptedRaw ? lastEncryptedRaw.slice(0,7) + '…' + lastEncryptedRaw.slice(-7) : '';
+    [['Account Number:', acct, 220], ['License Key:', sk, 260], ['Platform:', 'MetaTrader 5', 300]]
+      .forEach(([l,v,y])=>{ctx.fillStyle='#94a3b8';ctx.fillText(l,320,y);ctx.fillStyle='#e2e8f0';ctx.fillText(v,320+ctx.measureText(l).width,y);} );
 
     // فوتر
-    ctx.beginPath();
-    ctx.moveTo(40, H - 50);
-    ctx.lineTo(W - 40, H - 50);
-    ctx.strokeStyle = 'rgba(56,189,248,0.15)';
-    ctx.stroke();
-    ctx.font = '14px "Segoe UI"';
-    ctx.fillStyle = '#94a3b8';
-    ctx.textAlign = 'center';
-    ctx.fillText(
-      'Telegram: @Spiderexpert | Email: spidertrader@tmail.ae | Web: spidertrader.ton',
-      W/2, H - 20
-    );
+    ctx.beginPath(); ctx.moveTo(40,H-50); ctx.lineTo(W-40,H-50);
+    ctx.strokeStyle='rgba(56,189,248,0.15)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='14px "Segoe UI"'; ctx.fillStyle='#94a3b8'; ctx.textAlign='center';
+    ctx.fillText('Telegram: @Spiderexpert | Email: spidertrader@tmail.ae | Web: spidertrader.ton', W/2, H-20);
 
     // دانلود
-    const dataURL = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = dataURL;
-    link.download = `spidertrader-license-${accountText}.png`;
-    link.click();
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a'); a.href = url; a.download = `spidertrader-license-${acct}.png`; a.click();
     showNotification('✅ License downloaded!', 'success');
   }
 }
-
-
 
 // PWA Installation
 function installPWA() {
