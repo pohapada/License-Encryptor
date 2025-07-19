@@ -1123,9 +1123,9 @@ try {
   lastEncryptedTelegram = '`' + lastEncryptedRaw + '`';
   lastMode = 'encrypt';
     const dateOnly = new Date(ts * 1000).toLocaleDateString('en-US', {
-    day: '2-digit',   
-    month: '2-digit',  
-    year: 'numeric'
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit'  
   });
   // ذخیره تاریخ برای استفاده در بنر
   lastExpirationDate = dateOnly;
