@@ -1292,9 +1292,13 @@ qrCodeInstance = new QRCode(qrElement, {
 });
 
 // Update license text
-document.getElementById('licenseText').textContent = 
-  `SpiderTrader license key: ${(currentAccountNumber == 0) ? ' Demo' : currentAccountNumber}`;
-  `SpiderTrader license key: ${(currentAccountNumber == 661376) ? ' Gift' : currentAccountNumber}`;
+document.getElementById('licenseText').textContent =
+  `SpiderTrader license key: ${
+    currentAccountNumber == 0 ? 'Demo' :
+    currentAccountNumber == 661376 ? 'Gift' :
+    currentAccountNumber
+  }`;
+
 // Show modal
 document.getElementById('qrModal').classList.add('active');
 
