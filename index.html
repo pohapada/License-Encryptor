@@ -1294,7 +1294,7 @@ qrCodeInstance = new QRCode(qrElement, {
 // Update license text
 document.getElementById('licenseText').textContent = 
   `SpiderTrader license key: ${(currentAccountNumber == 0) ? ' Demo' : currentAccountNumber}`;
-
+  `SpiderTrader license key: ${(currentAccountNumber == 661376) ? ' Gift' : currentAccountNumber}`;
 // Show modal
 document.getElementById('qrModal').classList.add('active');
 
@@ -1426,6 +1426,7 @@ function downloadQRWithText() {
     ctx.fillText('LICENSE INFORMATION', 320, 180);
     ctx.font = '16px "Segoe UI"';
     const acct = currentAccountNumber == 0 ? 'Demo' : currentAccountNumber;
+     const acct = currentAccountNumber == 661376 ? 'Gift' : currentAccountNumber;
     const sk = lastEncryptedRaw ? lastEncryptedRaw.slice(0,7) + '…' + lastEncryptedRaw.slice(-7) : '';
      [['Account Number: ', acct, 220], 
      ['Expires: ', lastExpirationDate, 260], // نمایش تاریخ انقضا
