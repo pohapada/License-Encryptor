@@ -42,8 +42,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>License Encryptor Pro</title>
+<script src="https://telegram.org/js/telegram-web-app.js?64"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -751,6 +752,93 @@ background: var(--error);
     color: white;
     display: none;
   }
+
+
+/* Telegram Mini App: edge-to-edge layout, dynamic viewport and device safe areas */
+body.telegram-mini-app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+}
+
+body.telegram-mini-app .container {
+  width: 100%;
+  min-height: var(--telegram-viewport-height, 100dvh);
+  align-items: stretch;
+  padding:
+    max(10px, var(--app-safe-top, 0px))
+    var(--app-safe-right, 0px)
+    max(10px, var(--app-safe-bottom, 0px))
+    var(--app-safe-left, 0px);
+}
+
+body.telegram-mini-app .card {
+  width: 100%;
+  max-width: 760px;
+  min-height: calc(var(--telegram-viewport-height, 100dvh) - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px));
+  flex: 1 0 auto;
+  margin: 0 auto;
+  padding: clamp(18px, 3.8vw, 30px);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.telegram-mini-app .card-header {
+  margin-bottom: clamp(18px, 3vh, 30px);
+}
+
+body.telegram-mini-app .form-group {
+  margin-bottom: clamp(14px, 2.4vh, 25px);
+}
+
+body.telegram-mini-app .offline-status {
+  display: none !important;
+}
+
+body.telegram-mini-app .notification {
+  bottom: max(18px, var(--app-safe-bottom, 0px));
+  max-width: min(92%, 480px);
+  z-index: 3000;
+}
+
+body.telegram-mini-app .qr-modal {
+  padding:
+    max(12px, var(--app-safe-top, 0px))
+    max(12px, var(--app-safe-right, 0px))
+    max(12px, var(--app-safe-bottom, 0px))
+    max(12px, var(--app-safe-left, 0px));
+  overflow-y: auto;
+}
+
+body.telegram-mini-app input,
+body.telegram-mini-app select,
+body.telegram-mini-app button {
+  touch-action: manipulation;
+}
+
+@media (min-width: 700px) {
+  body.telegram-mini-app .container {
+    padding: max(16px, var(--app-safe-top, 0px)) 16px max(16px, var(--app-safe-bottom, 0px));
+  }
+  body.telegram-mini-app .card {
+    border-radius: 20px;
+    box-shadow: 0 15px 35px var(--shadow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.telegram-mini-app,
+  body.telegram-mini-app *,
+  body.telegram-mini-app *::before,
+  body.telegram-mini-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -912,30 +1000,107 @@ let isPWA = false;
 let qrCodeInstance = null;
 let currentAccountNumber = '';
 
-// Set theme based on system preference
+// Apply the preferred theme; inside Telegram, follow Telegram's live color scheme.
 function setSystemTheme() {
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.body.classList.add('dark');
-  document.querySelector('.theme-toggle i').className = 'fas fa-sun';
-} else {
-  document.body.classList.remove('dark');
-  document.querySelector('.theme-toggle i').className = 'fas fa-moon';
+  const tg = window.Telegram && window.Telegram.WebApp;
+  const prefersDark = tg
+    ? tg.colorScheme === 'dark'
+    : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  document.body.classList.toggle('dark', prefersDark);
+  const icon = document.querySelector('.theme-toggle i');
+  if (icon) icon.className = prefersDark ? 'fas fa-sun' : 'fas fa-moon';
+  localStorage.setItem('dark', prefersDark ? '1' : '0');
+  syncTelegramColors();
 }
-localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
+
+function syncTelegramColors() {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+  const dark = document.body.classList.contains('dark');
+  const color = dark ? '#111827' : '#f3f4f6';
+  try {
+    if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor(color);
+    if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor(color);
+    if (typeof tg.setBottomBarColor === 'function') tg.setBottomBarColor(color);
+  } catch (error) {
+    console.debug('Telegram theme sync unavailable:', error);
+  }
 }
 
 // Toggle dark mode
 function toggleDarkMode() {
-document.body.classList.toggle('dark');
-localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
+  document.body.classList.toggle('dark');
+  localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
 
-// Update icon
-const icon = document.querySelector('.theme-toggle i');
-if (document.body.classList.contains('dark')) {
-  icon.className = 'fas fa-sun';
-} else {
-  icon.className = 'fas fa-moon';
+  const icon = document.querySelector('.theme-toggle i');
+  if (icon) icon.className = document.body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+  syncTelegramColors();
 }
+
+// Telegram Mini App integration: expand first, then request true fullscreen when supported.
+function initializeTelegramMiniApp() {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+
+  document.body.classList.add('telegram-mini-app');
+
+  function updateTelegramViewport() {
+    const height = Number(tg.viewportStableHeight || tg.viewportHeight || window.innerHeight);
+    if (height > 0) {
+      document.documentElement.style.setProperty('--telegram-viewport-height', `${height}px`);
+    }
+  }
+
+  function updateTelegramSafeArea() {
+    const safe = tg.safeAreaInset || {};
+    const content = tg.contentSafeAreaInset || {};
+    ['top', 'right', 'bottom', 'left'].forEach(side => {
+      const px = Math.max(0, Number(safe[side] || 0)) + Math.max(0, Number(content[side] || 0));
+      document.documentElement.style.setProperty(`--app-safe-${side}`, `${px}px`);
+    });
+  }
+
+  try {
+    tg.ready();
+    if (typeof tg.expand === 'function') tg.expand();
+    updateTelegramViewport();
+    updateTelegramSafeArea();
+    syncTelegramColors();
+
+    if (typeof tg.onEvent === 'function') {
+      tg.onEvent('viewportChanged', updateTelegramViewport);
+      tg.onEvent('safeAreaChanged', updateTelegramSafeArea);
+      tg.onEvent('contentSafeAreaChanged', updateTelegramSafeArea);
+      tg.onEvent('fullscreenChanged', () => {
+        updateTelegramViewport();
+        updateTelegramSafeArea();
+      });
+      tg.onEvent('fullscreenFailed', () => {
+        // Keep the Mini App maximized even when fullscreen is unavailable.
+        if (typeof tg.expand === 'function') tg.expand();
+      });
+      tg.onEvent('themeChanged', setSystemTheme);
+    }
+
+    // Fullscreen API is available in Telegram Bot API 8.0 and newer.
+    const fullscreenSupported = typeof tg.requestFullscreen === 'function' &&
+      (typeof tg.isVersionAtLeast !== 'function' || tg.isVersionAtLeast('8.0'));
+
+    if (fullscreenSupported) {
+      try {
+        tg.requestFullscreen();
+      } catch (error) {
+        console.debug('Telegram fullscreen request was not accepted:', error);
+        if (typeof tg.expand === 'function') tg.expand();
+      }
+    }
+  } catch (error) {
+    console.debug('Telegram Mini App initialization fallback:', error);
+    try { if (typeof tg.expand === 'function') tg.expand(); } catch (_) {}
+  }
+
+  window.addEventListener('resize', updateTelegramViewport, { passive: true });
 }
 
 // Toggle key lock
@@ -1496,7 +1661,8 @@ statusEl.style.display = 'block';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
-// Set theme based on system preference
+// Initialize Telegram viewport/fullscreen support, then apply the active theme.
+initializeTelegramMiniApp();
 setSystemTheme();
 
 // Set up Developer Mode tap counter
@@ -1562,7 +1728,7 @@ if (isPWA) {
 
 // PWA installation prompt
 window.addEventListener('beforeinstallprompt', (e) => {
-  if (!isPWA) {
+  if (!isPWA && !(window.Telegram && window.Telegram.WebApp)) {
     e.preventDefault();
     deferredPrompt = e;
     document.getElementById('installBanner').classList.add('show');
