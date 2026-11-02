@@ -1,49 +1,9 @@
-
-<script type="text/javascript">
-  var gk_isXlsx = false;
-  var gk_xlsxFileLookup = {};
-  var gk_fileData = {};
-  function filledCell(cell) {
-    return cell !== '' && cell != null;
-  }
-  function loadFileData(filename) {
-  if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-      try {
-          var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-          var firstSheetName = workbook.SheetNames[0];
-          var worksheet = workbook.Sheets[firstSheetName];
-
-          // Convert sheet to JSON to filter blank rows
-          var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-          // Filter out blank rows (rows where all cells are empty, null, or undefined)
-          var filteredData = jsonData.filter(row => row.some(filledCell));
-
-          // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-          var headerRowIndex = filteredData.findIndex((row, index) =>
-            row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-          );
-          // Fallback
-          if (headerRowIndex === -1 || headerRowIndex > 25) {
-            headerRowIndex = 0;
-          }
-
-          // Convert filtered JSON back to CSV
-          var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-          csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-          return csv;
-      } catch (e) {
-          console.error(e);
-          return "";
-      }
-  }
-  return gk_fileData[filename] || "";
-  }
-  </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>License Encryptor Pro</title>
+<title>SpiderTrader · License Center</title>
 <script src="https://telegram.org/js/telegram-web-app.js?64"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -839,6 +799,719 @@ body.telegram-mini-app button {
   }
 }
 
+
+/* ============================================================
+   SPIDERTRADER — TELEGRAM-INSPIRED LIQUID GLASS INTERFACE
+   Visual layer only: all existing encryption and QR logic stays intact.
+   ============================================================ */
+:root {
+  color-scheme: light;
+  --primary: #2999e8;
+  --primary-light: #b9e3ff;
+  --secondary: #20b58a;
+  --secondary-light: #a8efd9;
+  --gray: var(--tg-app-bg, var(--tg-theme-bg-color, #eef3f9));
+  --dark-gray: rgba(101, 126, 155, .18);
+  --text: var(--tg-app-text, var(--tg-theme-text-color, #172638));
+  --text-light: var(--tg-app-hint, var(--tg-theme-hint-color, #75869a));
+  --card-bg: rgba(255, 255, 255, .60);
+  --shadow: rgba(31, 64, 100, .12);
+  --card-border: rgba(255, 255, 255, .68);
+  --card-gradient: linear-gradient(145deg, rgba(255,255,255,.82), rgba(234,244,255,.48));
+  --error: #e45c67;
+  --warning: #e6a33d;
+  --success: #20ad82;
+  --purple: #8069e9;
+  --purple-light: #cfc5ff;
+  --app-accent: var(--tg-app-button, var(--tg-theme-button-color, #2999e8));
+  --glass-edge: rgba(255,255,255,.62);
+  --glass-shadow: 0 16px 44px rgba(43, 75, 112, .12), inset 0 1px 0 rgba(255,255,255,.82);
+  --glass-blur: 22px;
+}
+
+body.dark {
+  color-scheme: dark;
+  --primary: #69baff;
+  --primary-light: #204d73;
+  --secondary: #43d5aa;
+  --secondary-light: #155c4d;
+  --gray: var(--tg-app-bg, var(--tg-theme-bg-color, #0d1521));
+  --dark-gray: rgba(178, 204, 230, .14);
+  --text: var(--tg-app-text, var(--tg-theme-text-color, #edf5ff));
+  --text-light: var(--tg-app-hint, var(--tg-theme-hint-color, #91a4ba));
+  --card-bg: rgba(20, 34, 51, .68);
+  --shadow: rgba(0, 0, 0, .30);
+  --card-border: rgba(186, 218, 247, .13);
+  --card-gradient: linear-gradient(145deg, rgba(29,48,69,.88), rgba(14,27,43,.76));
+  --error: #ff7a86;
+  --warning: #f4bd62;
+  --success: #47d7a9;
+  --purple: #a99aff;
+  --purple-light: #6653b9;
+  --glass-edge: rgba(211,232,255,.16);
+  --glass-shadow: 0 18px 46px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+html {
+  min-height: 100%;
+  background: var(--gray);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  letter-spacing: -.012em;
+  background-color: var(--gray);
+  background-image:
+    radial-gradient(ellipse at 8% 4%, rgba(59, 169, 245, .20), transparent 35%),
+    radial-gradient(ellipse at 93% 27%, rgba(70, 205, 178, .15), transparent 31%),
+    radial-gradient(ellipse at 45% 100%, rgba(128, 105, 233, .12), transparent 38%);
+  background-attachment: fixed;
+  animation: none;
+  color: var(--text);
+}
+
+body.dark {
+  background-image:
+    radial-gradient(ellipse at 8% 4%, rgba(37, 124, 194, .25), transparent 36%),
+    radial-gradient(ellipse at 94% 28%, rgba(30, 155, 133, .16), transparent 32%),
+    radial-gradient(ellipse at 46% 100%, rgba(99, 78, 190, .16), transparent 40%);
+}
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 14px;
+  align-items: stretch;
+  justify-content: center;
+  position: relative;
+  isolation: isolate;
+}
+
+.container::before,
+.container::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+.container::before {
+  width: 210px;
+  height: 210px;
+  top: 12%;
+  right: -105px;
+  background: radial-gradient(circle, rgba(93,190,255,.20), transparent 70%);
+}
+.container::after {
+  width: 250px;
+  height: 250px;
+  bottom: 4%;
+  left: -130px;
+  background: radial-gradient(circle, rgba(70,210,174,.16), transparent 70%);
+}
+
+.card {
+  width: 100%;
+  max-width: 620px;
+  min-height: calc(100dvh - 28px);
+  margin: 0 auto;
+  padding: clamp(20px, 4.8vw, 30px);
+  border: 1px solid var(--card-border);
+  border-radius: 30px;
+  background: var(--card-gradient);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(155%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(155%);
+  overflow: hidden;
+  animation: glassEnter .55s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent);
+  pointer-events: none;
+}
+
+@keyframes glassEnter {
+  from { opacity: 0; transform: translateY(12px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-header {
+  display: block;
+  margin: 0 0 25px;
+  padding: 2px 0 19px;
+  border-bottom: 1px solid rgba(120,151,183,.16);
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.logo-container {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 0;
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+.logo-container:active { transform: scale(.985); }
+
+.logo {
+  width: 51px;
+  height: 51px;
+  flex: 0 0 51px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(145deg, #40b8f5 0%, #357ce8 53%, #6b70e8 100%);
+  box-shadow: 0 9px 22px rgba(49,139,226,.30), inset 0 1px 0 rgba(255,255,255,.38);
+  position: relative;
+  overflow: hidden;
+}
+.logo::after {
+  content: "";
+  position: absolute;
+  width: 75%;
+  height: 150%;
+  top: -75%;
+  left: -20%;
+  transform: rotate(32deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);
+}
+.logo i { font-size: 21px; color: #fff; z-index: 1; }
+
+.brand-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+h1 {
+  margin: 0;
+  font-size: clamp(21px, 5vw, 25px);
+  line-height: 1.08;
+  font-weight: 780;
+  letter-spacing: -.045em;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.brand-subtitle {
+  color: var(--text-light);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.theme-toggle {
+  position: static;
+  flex: 0 0 45px;
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: var(--text);
+  background: rgba(255,255,255,.34);
+  border: 1px solid rgba(255,255,255,.48);
+  box-shadow: 0 5px 16px rgba(46,77,112,.08), inset 0 1px 0 rgba(255,255,255,.65);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease;
+}
+.theme-toggle:active { transform: scale(.94); }
+.theme-toggle i { font-size: 17px; }
+body.dark .theme-toggle {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.12);
+  box-shadow: 0 5px 16px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.header-caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 2px 0;
+  color: var(--text-light);
+  font-size: 12px;
+  font-weight: 600;
+}
+.live-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #26bd8e;
+  box-shadow: 0 0 0 4px rgba(38,189,142,.12), 0 0 12px rgba(38,189,142,.35);
+}
+.caption-separator { opacity: .55; }
+.dev-hint { display: none !important; }
+
+.install-banner {
+  margin-top: 15px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  background: rgba(55,151,226,.10);
+  border: 1px solid rgba(55,151,226,.14);
+  color: var(--text);
+  font-size: 12px;
+}
+.install-banner > i { color: var(--primary); }
+.install-banner button {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 35px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.form-group {
+  margin: 0 0 20px;
+  animation: none;
+}
+label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 9px 2px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: -.01em;
+}
+label i {
+  width: 17px;
+  color: var(--primary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.input-group { position: relative; }
+input, select {
+  width: 100%;
+  height: 54px;
+  padding: 0 17px;
+  border: 1px solid rgba(122,153,184,.20);
+  border-radius: 17px;
+  outline: none;
+  background: rgba(255,255,255,.48);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 550;
+  box-shadow: inset 0 1px 2px rgba(35,66,99,.035), 0 5px 14px rgba(35,66,99,.035);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+input::placeholder { color: var(--text-light); opacity: .76; font-weight: 450; }
+input:focus, select:focus {
+  border-color: rgba(41,153,232,.58);
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 0 0 4px rgba(41,153,232,.12), inset 0 1px 2px rgba(35,66,99,.025);
+}
+body.dark input, body.dark select {
+  background: rgba(6,17,29,.40);
+  border-color: rgba(185,214,241,.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 5px 15px rgba(0,0,0,.10);
+}
+body.dark input:focus, body.dark select:focus {
+  background: rgba(8,23,39,.72);
+  border-color: rgba(105,186,255,.58);
+  box-shadow: 0 0 0 4px rgba(105,186,255,.12);
+}
+select { appearance: none; -webkit-appearance: none; padding-right: 44px; }
+#durationGroup { position: relative; }
+#durationGroup::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: 20px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-light);
+  border-bottom: 2px solid var(--text-light);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.input-icon {
+  top: 50%;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  color: var(--text-light);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  transform: translateY(-50%);
+}
+.input-icon:hover { background: rgba(41,153,232,.10); color: var(--primary); }
+.input-group input { padding-right: 56px; }
+
+.error-message {
+  margin: 7px 0 0 3px;
+  color: var(--error);
+  font-size: 12px;
+  font-weight: 600;
+}
+.key-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  min-height: 27px;
+  margin: 9px 0 0 2px;
+  padding: 5px 10px;
+  border-radius: 30px;
+  color: var(--text-light);
+  background: rgba(121,151,180,.09);
+  font-size: 11px;
+  font-weight: 650;
+}
+.key-status i { font-size: 10px; }
+#storageStatus { background: rgba(32,181,138,.10); color: var(--success); }
+
+.btn-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin: 25px 0 0;
+}
+button {
+  min-width: 0;
+  min-height: 53px;
+  padding: 13px 14px;
+  border: 1px solid transparent;
+  border-radius: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -.01em;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(37,105,172,.15), inset 0 1px 0 rgba(255,255,255,.24);
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+button:active { transform: scale(.975); filter: brightness(.97); }
+button:hover { transform: translateY(-1px); }
+.btn-encrypt {
+  background: linear-gradient(135deg, #32a9ed, #357ce5);
+  box-shadow: 0 9px 20px rgba(49,137,220,.24), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.btn-decrypt {
+  color: #fff;
+  background: linear-gradient(135deg, #28bd9b, #159b83);
+  box-shadow: 0 9px 20px rgba(25,166,137,.20), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.btn-copy { background: linear-gradient(135deg, #8580ed, #6c68d9); }
+.btn-qr { background: linear-gradient(135deg, #9a7af0, #795ad8); }
+.btn-disable-dev { background: linear-gradient(135deg, #eab04e, #d58c32); }
+.btn-clear-cache { background: linear-gradient(135deg, #e66f77, #d84e5d); }
+.btn-group button i { font-size: 14px; }
+
+pre {
+  min-height: 112px;
+  max-height: 290px;
+  margin: 21px 0 0;
+  padding: 17px 18px;
+  border: 1px solid rgba(122,153,184,.17);
+  border-left: 0;
+  border-radius: 19px;
+  color: var(--text);
+  background: rgba(255,255,255,.36);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.48), 0 8px 20px rgba(35,66,99,.045);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+}
+pre:hover { transform: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.48), 0 8px 20px rgba(35,66,99,.045); }
+pre.success { border-color: rgba(32,181,138,.24); border-left: 0; }
+pre.error { border-color: rgba(228,92,103,.30); border-left: 0; }
+body.dark pre {
+  background: rgba(5,16,28,.36);
+  border-color: rgba(185,214,241,.13);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 22px rgba(0,0,0,.13);
+}
+
+.dev-mode-section {
+  margin-top: 18px;
+  padding: 17px;
+  border: 1px solid rgba(230,163,61,.22);
+  border-left: 0;
+  border-radius: 18px;
+  background: rgba(230,163,61,.09);
+}
+.dev-mode-section h3 { font-size: 14px; margin-bottom: 7px; }
+.dev-mode-section p { color: var(--text-light); font-size: 12px; line-height: 1.55; }
+
+.notification {
+  bottom: max(20px, env(safe-area-inset-bottom));
+  padding: 13px 18px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 18px;
+  background: rgba(34,133,211,.88);
+  box-shadow: 0 12px 35px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.25);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  font-size: 13px;
+}
+.notification.success { background: rgba(25,163,125,.91); }
+.notification.error { background: rgba(214,73,87,.92); }
+.notification.warning { background: rgba(205,139,42,.94); }
+.notification.purple { background: rgba(117,91,209,.93); }
+
+.qr-modal {
+  background: rgba(8,19,33,.48);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.qr-modal-content {
+  width: min(92%, 410px);
+  padding: 27px 22px 22px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 27px;
+  background: var(--card-gradient);
+  color: var(--text);
+  box-shadow: 0 24px 70px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.45);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
+}
+.qr-modal-content::before { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); }
+.qr-modal-title { color: var(--text); background: none; -webkit-text-fill-color: currentColor; font-size: 21px; letter-spacing: -.035em; }
+.qr-modal-subtitle { color: var(--text-light); font-size: 12px; }
+.qr-code-container { padding: 12px; border: 1px solid rgba(128,151,176,.18); border-radius: 17px; }
+.qr-license-text { padding: 11px; border: 1px solid rgba(128,151,176,.16); border-radius: 13px; background: rgba(128,151,176,.08); font-size: 12px; overflow-wrap: anywhere; }
+.btn-modal { width: 100%; min-height: 49px; border-radius: 15px; background: linear-gradient(135deg, #32a9ed, #357ce5); color: white; }
+.close-modal { width: 34px; height: 34px; border: 1px solid rgba(128,151,176,.15); background: rgba(128,151,176,.10); color: var(--text); }
+.close-modal:hover { background: var(--error); color: #fff; }
+
+/* In Telegram, leave a small floating glass margin around the content instead
+   of flattening the card against the WebView edges. */
+body.telegram-mini-app .container {
+  width: 100%;
+  min-height: var(--telegram-viewport-height, 100dvh);
+  padding: max(10px, var(--app-safe-top, 0px))
+           max(10px, var(--app-safe-right, 0px))
+           max(12px, var(--app-safe-bottom, 0px))
+           max(10px, var(--app-safe-left, 0px));
+  align-items: stretch;
+}
+body.telegram-mini-app .card {
+  width: 100%;
+  max-width: 620px;
+  min-height: calc(var(--telegram-viewport-height, 100dvh) - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px) - 22px);
+  margin: 0 auto;
+  padding: clamp(18px, 4.5vw, 28px);
+  border-radius: 27px;
+  box-shadow: var(--glass-shadow);
+}
+body.telegram-mini-app .card-header { margin-bottom: 22px; }
+body.telegram-mini-app .form-group { margin-bottom: 17px; }
+body.telegram-mini-app .offline-status { display: none !important; }
+body.telegram-mini-app .notification { bottom: max(18px, var(--app-safe-bottom, 0px)); }
+body.telegram-mini-app .qr-modal {
+  padding: max(12px, var(--app-safe-top, 0px)) 12px max(12px, var(--app-safe-bottom, 0px));
+  overflow-y: auto;
+}
+
+@media (max-width: 380px) {
+  .container { padding: 8px; }
+  body.telegram-mini-app .container { padding: max(8px, var(--app-safe-top, 0px)) 8px max(9px, var(--app-safe-bottom, 0px)); }
+  .card, body.telegram-mini-app .card { padding: 17px 15px; border-radius: 23px; }
+  .logo { width: 46px; height: 46px; flex-basis: 46px; border-radius: 16px; }
+  .btn-group { gap: 9px; }
+  .btn-group button { padding: 12px 8px; font-size: 13px; }
+}
+
+@media (min-width: 700px) {
+  .container { padding: 22px; }
+  body.telegram-mini-app .container { padding: max(16px, var(--app-safe-top, 0px)) 16px max(16px, var(--app-safe-bottom, 0px)); }
+  .card, body.telegram-mini-app .card { border-radius: 30px; }
+}
+
+@supports not ((backdrop-filter: blur(2px))) {
+  .card, input, select, pre, .theme-toggle, .qr-modal-content { background-color: var(--card-bg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .logo, button, input, select, .theme-toggle { animation: none !important; transition: none !important; }
+}
+
+
+
+/* Telegram-native usability refinements */
+:root {
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+  --tg-app-bg: var(--tg-theme-bg-color, #eef3f9);
+  --tg-app-secondary: var(--tg-theme-secondary-bg-color, #e6edf5);
+  --tg-app-text: var(--tg-theme-text-color, #172638);
+  --tg-app-hint: var(--tg-theme-hint-color, #75869a);
+  --tg-app-button: var(--tg-theme-button-color, #2999e8);
+  --tg-app-button-text: var(--tg-theme-button-text-color, #ffffff);
+}
+body.dark {
+  --tg-app-bg: var(--tg-theme-bg-color, #0d1521);
+  --tg-app-secondary: var(--tg-theme-secondary-bg-color, #172434);
+  --tg-app-text: var(--tg-theme-text-color, #edf5ff);
+  --tg-app-hint: var(--tg-theme-hint-color, #91a4ba);
+  --tg-app-button: var(--tg-theme-button-color, #5288c1);
+  --tg-app-button-text: var(--tg-theme-button-text-color, #ffffff);
+}
+html, body { overscroll-behavior-x: none; }
+body { -webkit-tap-highlight-color: transparent; }
+body.modal-open { overflow: hidden; }
+button, input, select, textarea { font-family: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, pre:focus-visible {
+  outline: 3px solid rgba(41,153,232,.38);
+  outline-offset: 2px;
+}
+
+.header-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.fullscreen-toggle {
+  display: none; width: 42px; height: 42px; min-height: 42px; padding: 0;
+  align-items: center; justify-content: center; border-radius: 15px;
+  color: var(--text); background: rgba(255,255,255,.30);
+  border: 1px solid rgba(255,255,255,.42); box-shadow: none;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+body.dark .fullscreen-toggle { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.12); }
+.fullscreen-toggle:active { transform: scale(.94); }
+
+label .label-meta {
+  margin-left: auto;
+  color: var(--text-light);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .02em;
+}
+.theme-toggle { appearance: none; -webkit-appearance: none; padding: 0; }
+.theme-toggle[aria-pressed="true"] { color: #e5a83f; }
+#number, #manualUnix { direction: ltr; text-align: left; font-variant-numeric: tabular-nums; }
+#key { direction: ltr; text-align: left; letter-spacing: .05em; }
+select { direction: ltr; text-align: left; }
+.output-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 3px 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 760;
+}
+.output-heading > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+.output-heading > span:first-child i { color: var(--primary); }
+.output-copy-hint { display: inline-flex; align-items: center; gap: 6px; color: var(--text-light); font-size: 10px; font-weight: 600; }
+pre#output { margin-top: 9px; min-height: 96px; user-select: text; -webkit-user-select: text; }
+pre#output:empty { min-height: 70px; }
+
+.decrypt-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  align-items: center;
+  justify-content: center;
+  padding: max(14px, var(--app-safe-top, 0px)) max(14px, var(--app-safe-right, 0px)) max(14px, var(--app-safe-bottom, 0px)) max(14px, var(--app-safe-left, 0px));
+  overflow-y: auto;
+  background: rgba(8,19,33,.48);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.decrypt-modal.active { display: flex; }
+.decrypt-modal-content {
+  position: relative;
+  width: min(100%, 440px);
+  margin: auto;
+  padding: 26px 22px 20px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 27px;
+  color: var(--text);
+  background: var(--card-gradient);
+  box-shadow: 0 24px 70px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.45);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
+}
+.decrypt-modal-icon {
+  width: 46px; height: 46px; display: grid; place-items: center;
+  margin: 0 0 14px; border-radius: 16px; color: #fff;
+  background: linear-gradient(135deg, #28bd9b, #159b83);
+  box-shadow: 0 8px 20px rgba(25,166,137,.22);
+}
+.decrypt-modal-content h2 { margin: 0 42px 7px 0; color: var(--text); font-size: 20px; letter-spacing: -.035em; }
+.decrypt-description { margin: 0 0 18px; color: var(--text-light); font-size: 12px; line-height: 1.6; }
+.decrypt-input-label { display: block; margin: 0 0 8px; color: var(--text); font-size: 12px; font-weight: 750; }
+#decryptInput {
+  display: block; width: 100%; min-height: 112px; resize: vertical;
+  padding: 13px 14px; border: 1px solid rgba(122,153,184,.22); border-radius: 15px;
+  background: rgba(255,255,255,.48); color: var(--text); font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: left; overflow-wrap: anywhere; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+body.dark #decryptInput { background: rgba(6,17,29,.46); border-color: rgba(185,214,241,.14); }
+.decrypt-modal-actions { display: grid; grid-template-columns: .8fr 1.2fr; gap: 10px; margin-top: 14px; }
+.decrypt-modal-actions button { min-height: 47px; border-radius: 14px; font-size: 13px; }
+.decrypt-paste { color: var(--text); background: rgba(128,151,176,.13); border: 1px solid rgba(128,151,176,.17); box-shadow: none; }
+.decrypt-submit { color: #fff; background: linear-gradient(135deg, #28bd9b, #159b83); }
+.decrypt-close { top: 14px; right: 14px; }
+
+/* Prevent installation prompts and browser-only controls from competing with Telegram UI. */
+body.telegram-mini-app .install-banner { display: none !important; }
+body.telegram-mini-app .container { min-height: var(--telegram-viewport-height, 100dvh); }
+body.telegram-mini-app .card { min-height: max(0px, calc(var(--telegram-viewport-height, 100dvh) - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px) - 22px)); }
+body.telegram-mini-app .notification { left: 50%; bottom: max(22px, calc(var(--app-safe-bottom, 0px) + 12px)); }
+body.telegram-mini-app .decrypt-modal { padding-top: max(14px, var(--app-safe-top, 0px)); padding-bottom: max(14px, var(--app-safe-bottom, 0px)); }
+@media (max-height: 690px) {
+  .card { padding-top: 16px; padding-bottom: 16px; }
+  .card-header { margin-bottom: 15px; padding-bottom: 13px; }
+  .header-caption { margin-top: 10px; }
+  .form-group { margin-bottom: 13px; }
+  input, select { height: 49px; }
+  .btn-group { margin-top: 18px; }
+  button { min-height: 48px; }
+}
+@media (max-width: 700px) {
+  input, select, textarea, #decryptInput { font-size: 16px !important; }
+}
+@media (max-width: 360px) {
+  .brand-subtitle { font-size: 9px; }
+  .header-caption { font-size: 11px; }
+  .output-copy-hint { font-size: 9px; }
+  .decrypt-modal-content { padding: 22px 16px 16px; }
+}
+@supports not ((backdrop-filter: blur(2px))) {
+  .decrypt-modal-content, #decryptInput { background: var(--card-bg); }
+}
+
 </style>
 </head>
 <body>
@@ -849,19 +1522,32 @@ body.telegram-mini-app button {
 
 <div class="container">
 <div class="card">
-<div class="theme-toggle" onclick="toggleDarkMode()">
-  <i class="fas fa-moon"></i>
-</div>
-
 <div class="card-header">
-  <div class="logo-container" id="logoLock">
-    <div class="logo">
-      <i class="fas fa-lock"></i>
+  <div class="brand-row">
+    <div class="logo-container" id="logoLock" aria-label="SpiderTrader">
+      <div class="logo"><i class="fas fa-spider"></i></div>
+      <div class="brand-copy">
+        <h1>SpiderTrader</h1>
+        <span class="brand-subtitle">LICENSE CENTER</span>
+      </div>
+      <div class="tap-counter" id="tapCounter">0</div>
     </div>
-    <h1>License Encryptor</h1>
-    <div class="tap-counter" id="tapCounter">0</div>
+    <div class="header-actions">
+      <button class="fullscreen-toggle" id="fullscreenBtn" type="button" onclick="requestTelegramFullscreen()" aria-label="Enter full screen" title="Full screen">
+        <i class="fas fa-expand" aria-hidden="true"></i>
+      </button>
+      <button class="theme-toggle" type="button" onclick="toggleDarkMode()" aria-label="Switch to dark theme" aria-pressed="false">
+        <i class="fas fa-moon" aria-hidden="true"></i>
+      </button>
+    </div>
   </div>
-  <div class="dev-hint" id="devHint">Tap lock icon 10 times to activate Developer Mode</div>
+  <div class="header-caption">
+    <span class="live-indicator"></span>
+    <span>License tools</span>
+    <span class="caption-separator">·</span>
+    <span>Encrypted locally</span>
+  </div>
+  <div class="dev-hint" id="devHint">Tap the SpiderTrader icon 10 times to activate Developer Mode</div>
   <div class="install-banner" id="installBanner">
     <i class="fas fa-download"></i>
     <span>Install this app for offline use</span>
@@ -870,13 +1556,13 @@ body.telegram-mini-app button {
 </div>
 
 <div class="form-group">
-  <label for="number"><i class="fas fa-id-card"></i> License ID</label>
-  <input id="number" type="text" placeholder="e.g., 123456789" autocomplete="off">
+  <label for="number"><i class="fas fa-id-card"></i> MetaTrader 5 account</label>
+  <input id="number" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="20" placeholder="Enter MT5 account number" autocomplete="off" autocapitalize="off" spellcheck="false">
   <div class="error-message" id="numberError">Please enter a valid numeric License ID</div>
 </div>
 
 <div class="form-group" id="durationGroup">
-  <label for="duration"><i class="fas fa-calendar-alt"></i> Duration</label>
+  <label for="duration"><i class="fas fa-calendar-alt"></i> License period</label>
   <select id="duration">
     <option value="1">1 Month</option>
     <option value="3">3 Months</option>
@@ -887,16 +1573,16 @@ body.telegram-mini-app button {
 </div>
 
 <div class="form-group" id="unixGroup" style="display:none;">
-  <label for="manualUnix"><i class="fas fa-clock"></i> Custom Unix Time</label>
-  <input id="manualUnix" type="number" placeholder="Optional for testing" autocomplete="off">
+  <label for="manualUnix"><i class="fas fa-clock"></i> Custom expiration timestamp</label>
+  <input id="manualUnix" type="number" inputmode="numeric" placeholder="Unix timestamp" autocomplete="off">
 </div>
 
 <div class="form-group">
-  <label for="key"><i class="fas fa-key"></i> Encryption Key (16 characters)</label>
+  <label for="key"><i class="fas fa-key"></i> Encryption key <span class="label-meta">16 characters</span></label>
   <div class="input-group">
-    <input id="key" type="password" maxlength="16" placeholder="Enter 16-character key" autocomplete="off">
-    <button class="input-icon" id="lockBtn" onclick="toggleKeyLock()">
-      <i class="fas fa-lock"></i>
+    <input id="key" type="password" maxlength="16" placeholder="Enter your 16-character key" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="input-icon" id="lockBtn" type="button" onclick="toggleKeyLock()" aria-label="Lock encryption key field" aria-pressed="false">
+      <i class="fas fa-lock" aria-hidden="true"></i>
     </button>
   </div>
   <div class="error-message" id="keyError">Key must be exactly 16 characters</div>
@@ -941,7 +1627,11 @@ body.telegram-mini-app button {
   </button>
 </div>
 
-<pre id="output">🔒 Your encrypted or decrypted results will appear here. Click to copy.</pre>
+<div class="output-heading">
+  <span><i class="fas fa-terminal" aria-hidden="true"></i> License result</span>
+  <span class="output-copy-hint"><i class="far fa-copy" aria-hidden="true"></i> Tap result to copy</span>
+</div>
+<pre id="output" role="button" tabindex="0" aria-label="License result. Tap to copy.">Your license result will appear here.</pre>
 
 <div class="dev-mode-section" id="devInfo">
   <h3>
@@ -951,6 +1641,24 @@ body.telegram-mini-app button {
   <p>You can now set custom Unix timestamps. Duration selection is hidden.</p>
 </div>
 </div>
+</div>
+
+<!-- Decrypt Dialog -->
+<div class="decrypt-modal" id="decryptModal" aria-hidden="true">
+  <div class="decrypt-modal-content" role="dialog" aria-modal="true" aria-labelledby="decryptTitle">
+    <button class="close-modal decrypt-close" type="button" onclick="closeDecryptModal()" aria-label="Close">
+      <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
+    <div class="decrypt-modal-icon"><i class="fas fa-unlock-alt" aria-hidden="true"></i></div>
+    <h2 id="decryptTitle">Verify a license</h2>
+    <p class="decrypt-description">Paste the encrypted license code below. Your 16-character key will be used to decrypt it on this device.</p>
+    <label for="decryptInput" class="decrypt-input-label">Encrypted license code</label>
+    <textarea id="decryptInput" rows="4" dir="ltr" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Paste Base64 license code here"></textarea>
+    <div class="decrypt-modal-actions">
+      <button class="decrypt-paste" type="button" onclick="pasteEncryptedText()"><i class="fas fa-paste" aria-hidden="true"></i> Paste</button>
+      <button class="decrypt-submit" type="button" onclick="performDecrypt()"><i class="fas fa-unlock" aria-hidden="true"></i> Verify license</button>
+    </div>
+  </div>
 </div>
 
 <!-- QR Code Modal -->
@@ -1000,99 +1708,191 @@ let isPWA = false;
 let qrCodeInstance = null;
 let currentAccountNumber = '';
 
-// Apply the preferred theme; inside Telegram, follow Telegram's live color scheme.
+// Telegram integration helpers. The cryptographic payload and AES format remain unchanged.
+function getTelegramApp() {
+  return window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+}
+
+function applyThemeButtonState() {
+  const button = document.querySelector('.theme-toggle');
+  const icon = button && button.querySelector('i');
+  const dark = document.body.classList.contains('dark');
+  if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+  if (button) {
+    button.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    button.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+}
+
+let manualThemeOverride = null;
+
 function setSystemTheme() {
-  const tg = window.Telegram && window.Telegram.WebApp;
+  manualThemeOverride = null;
+  const tg = getTelegramApp();
   const prefersDark = tg
     ? tg.colorScheme === 'dark'
     : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
   document.body.classList.toggle('dark', prefersDark);
-  const icon = document.querySelector('.theme-toggle i');
-  if (icon) icon.className = prefersDark ? 'fas fa-sun' : 'fas fa-moon';
-  localStorage.setItem('dark', prefersDark ? '1' : '0');
+  applyThemeButtonState();
   syncTelegramColors();
 }
 
 function syncTelegramColors() {
-  const tg = window.Telegram && window.Telegram.WebApp;
+  const tg = getTelegramApp();
   if (!tg) return;
+  const params = tg.themeParams || {};
   const dark = document.body.classList.contains('dark');
-  const color = dark ? '#111827' : '#f3f4f6';
+  const useTelegramPalette = manualThemeOverride === null;
+  const bg = useTelegramPalette ? (params.bg_color || (dark ? '#0d1521' : '#eef3f9')) : (dark ? '#0d1521' : '#eef3f9');
+  const secondary = useTelegramPalette ? (params.secondary_bg_color || (dark ? '#172434' : '#e6edf5')) : (dark ? '#172434' : '#e6edf5');
+  const text = useTelegramPalette ? (params.text_color || (dark ? '#edf5ff' : '#172638')) : (dark ? '#edf5ff' : '#172638');
+  const hint = useTelegramPalette ? (params.hint_color || (dark ? '#91a4ba' : '#75869a')) : (dark ? '#91a4ba' : '#75869a');
+  const button = useTelegramPalette ? (params.button_color || (dark ? '#5288c1' : '#2999e8')) : (dark ? '#5288c1' : '#2999e8');
+  const buttonText = useTelegramPalette ? (params.button_text_color || '#ffffff') : '#ffffff';
+  const header = useTelegramPalette ? (params.header_bg_color || bg) : bg;
+  const bottom = useTelegramPalette ? (params.bottom_bar_bg_color || bg) : bg;
+  const root = document.documentElement;
+  root.style.setProperty('--tg-app-bg', bg);
+  root.style.setProperty('--tg-app-secondary', secondary);
+  root.style.setProperty('--tg-app-text', text);
+  root.style.setProperty('--tg-app-hint', hint);
+  root.style.setProperty('--tg-app-button', button);
+  root.style.setProperty('--tg-app-button-text', buttonText);
   try {
-    if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor(color);
-    if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor(color);
-    if (typeof tg.setBottomBarColor === 'function') tg.setBottomBarColor(color);
+    if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor(header);
+    if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor(bg);
+    if (typeof tg.setBottomBarColor === 'function') tg.setBottomBarColor(bottom);
   } catch (error) {
     console.debug('Telegram theme sync unavailable:', error);
   }
 }
 
-// Toggle dark mode
 function toggleDarkMode() {
   document.body.classList.toggle('dark');
-  localStorage.setItem('dark', document.body.classList.contains('dark') ? '1' : '0');
-
-  const icon = document.querySelector('.theme-toggle i');
-  if (icon) icon.className = document.body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+  manualThemeOverride = document.body.classList.contains('dark') ? 'dark' : 'light';
+  applyThemeButtonState();
   syncTelegramColors();
+  const tg = getTelegramApp();
+  telegramHaptic('light');
 }
 
-// Telegram Mini App integration: expand first, then request true fullscreen when supported.
-function initializeTelegramMiniApp() {
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (!tg) return;
+let telegramBackHandlerRegistered = false;
+function updateFullscreenButton() {
+  const tg = getTelegramApp();
+  const button = document.getElementById('fullscreenBtn');
+  if (!tg || !button) return;
+  const supported = typeof tg.requestFullscreen === 'function' &&
+    (typeof tg.isVersionAtLeast !== 'function' || tg.isVersionAtLeast('8.0'));
+  button.style.display = supported && !tg.isFullscreen ? 'flex' : 'none';
+}
 
+function requestTelegramFullscreen() {
+  const tg = getTelegramApp();
+  if (!tg) return;
+  if (typeof tg.requestFullscreen !== 'function' ||
+      (typeof tg.isVersionAtLeast === 'function' && !tg.isVersionAtLeast('8.0'))) {
+    try { if (typeof tg.expand === 'function') tg.expand(); } catch (_) {}
+    showNotification('Expanded to the available Telegram height', 'warning');
+    return;
+  }
+  try {
+    const request = tg.requestFullscreen();
+    if (request && typeof request.catch === 'function') {
+      request.catch(error => {
+        console.debug('Telegram fullscreen request failed:', error);
+        if (typeof tg.expand === 'function') tg.expand();
+        showNotification('Full screen is unavailable in this Telegram version', 'warning');
+      });
+    }
+  } catch (error) {
+    console.debug('Telegram fullscreen request failed:', error);
+    if (typeof tg.expand === 'function') tg.expand();
+    showNotification('Full screen is unavailable in this Telegram version', 'warning');
+  }
+}
+
+function updateTelegramBackButton() {
+  const tg = getTelegramApp();
+  if (!tg || !tg.BackButton) return;
+  const modalOpen = document.getElementById('decryptModal')?.classList.contains('active') ||
+    document.getElementById('qrModal')?.classList.contains('active');
+  try {
+    if (modalOpen) tg.BackButton.show();
+    else tg.BackButton.hide();
+  } catch (_) {}
+}
+
+function handleTelegramBack() {
+  const decryptModal = document.getElementById('decryptModal');
+  const qrModal = document.getElementById('qrModal');
+  if (decryptModal && decryptModal.classList.contains('active')) {
+    closeDecryptModal();
+    return;
+  }
+  if (qrModal && qrModal.classList.contains('active')) {
+    closeQRModal();
+  }
+}
+
+function initializeTelegramMiniApp() {
+  const tg = getTelegramApp();
+  if (!tg) return;
   document.body.classList.add('telegram-mini-app');
 
   function updateTelegramViewport() {
-    const height = Number(tg.viewportStableHeight || tg.viewportHeight || window.innerHeight);
-    if (height > 0) {
-      document.documentElement.style.setProperty('--telegram-viewport-height', `${height}px`);
-    }
+    // viewportHeight responds to keyboard and sheet changes; stable height is the fallback.
+    const height = Number(tg.viewportHeight || tg.viewportStableHeight || window.innerHeight);
+    if (height > 0) document.documentElement.style.setProperty('--telegram-viewport-height', `${height}px`);
   }
 
   function updateTelegramSafeArea() {
     const safe = tg.safeAreaInset || {};
     const content = tg.contentSafeAreaInset || {};
     ['top', 'right', 'bottom', 'left'].forEach(side => {
+      // Use the larger inset to avoid double-counting overlapping safe-area information.
       const px = Math.max(0, Number(safe[side] || 0)) + Math.max(0, Number(content[side] || 0));
       document.documentElement.style.setProperty(`--app-safe-${side}`, `${px}px`);
     });
   }
 
   try {
-    tg.ready();
+    if (typeof tg.ready === 'function') tg.ready();
     if (typeof tg.expand === 'function') tg.expand();
     updateTelegramViewport();
     updateTelegramSafeArea();
     syncTelegramColors();
+    updateFullscreenButton();
 
     if (typeof tg.onEvent === 'function') {
       tg.onEvent('viewportChanged', updateTelegramViewport);
       tg.onEvent('safeAreaChanged', updateTelegramSafeArea);
       tg.onEvent('contentSafeAreaChanged', updateTelegramSafeArea);
-      tg.onEvent('fullscreenChanged', () => {
-        updateTelegramViewport();
-        updateTelegramSafeArea();
-      });
-      tg.onEvent('fullscreenFailed', () => {
-        // Keep the Mini App maximized even when fullscreen is unavailable.
-        if (typeof tg.expand === 'function') tg.expand();
-      });
+      tg.onEvent('fullscreenChanged', () => { updateTelegramViewport(); updateTelegramSafeArea(); updateFullscreenButton(); });
+      tg.onEvent('fullscreenFailed', () => { if (typeof tg.expand === 'function') tg.expand(); updateFullscreenButton(); });
       tg.onEvent('themeChanged', setSystemTheme);
+      if (!telegramBackHandlerRegistered && tg.BackButton && typeof tg.BackButton.onClick === 'function') {
+        tg.BackButton.onClick(handleTelegramBack);
+        telegramBackHandlerRegistered = true;
+      }
     }
 
-    // Fullscreen API is available in Telegram Bot API 8.0 and newer.
-    const fullscreenSupported = typeof tg.requestFullscreen === 'function' &&
+    // Fullscreen requires Mini Apps v8.0+. Always preserve expand() as a fallback.
+    const supported = typeof tg.requestFullscreen === 'function' &&
       (typeof tg.isVersionAtLeast !== 'function' || tg.isVersionAtLeast('8.0'));
-
-    if (fullscreenSupported) {
+    if (supported) {
       try {
-        tg.requestFullscreen();
+        const request = tg.requestFullscreen();
+        if (request && typeof request.catch === 'function') {
+          request.catch(error => {
+            console.debug('Telegram fullscreen request failed:', error);
+            if (typeof tg.expand === 'function') tg.expand();
+            updateFullscreenButton();
+          });
+        }
       } catch (error) {
         console.debug('Telegram fullscreen request was not accepted:', error);
         if (typeof tg.expand === 'function') tg.expand();
+        updateFullscreenButton();
       }
     }
   } catch (error) {
@@ -1101,6 +1901,19 @@ function initializeTelegramMiniApp() {
   }
 
   window.addEventListener('resize', updateTelegramViewport, { passive: true });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', updateTelegramViewport, { passive: true });
+}
+
+function telegramHaptic(type = 'light') {
+  const tg = getTelegramApp();
+  try {
+    if (!tg || !tg.HapticFeedback) return;
+    if (type === 'success' || type === 'error' || type === 'warning') {
+      tg.HapticFeedback.notificationOccurred(type);
+    } else {
+      tg.HapticFeedback.impactOccurred(type);
+    }
+  } catch (_) {}
 }
 
 // Toggle key lock
@@ -1110,13 +1923,17 @@ const lockBtn = document.getElementById('lockBtn');
 const keyInput = document.getElementById('key');
 
 if (isKeyLocked) {
-  lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
+  lockBtn.innerHTML = '<i class="fas fa-lock" aria-hidden="true"></i>';
+  lockBtn.setAttribute('aria-label', 'Unlock encryption key field');
+  lockBtn.setAttribute('aria-pressed', 'true');
   keyInput.disabled = true;
-  showNotification('🔓 Key input locked', 'warning');
+  showNotification('Encryption key field locked', 'warning');
 } else {
-  lockBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
+  lockBtn.innerHTML = '<i class="fas fa-lock-open" aria-hidden="true"></i>';
+  lockBtn.setAttribute('aria-label', 'Lock encryption key field');
+  lockBtn.setAttribute('aria-pressed', 'false');
   keyInput.disabled = false;
-  showNotification('🔒 Key input unlocked', 'warning');
+  showNotification('Encryption key field unlocked', 'warning');
 }
 }
 
@@ -1244,6 +2061,11 @@ const btnQR = document.getElementById('btnQR');
 const numberError = document.getElementById('numberError');
 const keyError = document.getElementById('keyError');
 
+// A failed new attempt must not leave the previous license copyable.
+lastEncryptedRaw = '';
+lastEncryptedTelegram = '';
+lastMode = '';
+
 // Reset errors
 numberError.style.display = 'none';
 keyError.style.display = 'none';
@@ -1266,6 +2088,7 @@ if (keyVal.length !== 16) {
 if (!isValid) {
   outputEl.textContent = 'Please fix the errors above';
   outputEl.classList.add('error');
+  telegramHaptic('error');
   btnCopy.style.display = 'none';
   btnQR.style.display = 'none';
   return;
@@ -1296,6 +2119,7 @@ lastExpirationDate = dateOnly;
   const dateStr = new Date(ts * 1000).toLocaleString();
   outputEl.textContent = `✅ ENCRYPTED SUCCESSFULLY\n\n🔑 Encrypted License Key:\n${lastEncryptedRaw}\n\n⏰ Expiration Date:\n${dateStr}\n\n⌛ Unix Timestamp: ${ts}`;
   outputEl.classList.add('success');
+  telegramHaptic('success');
   btnCopy.style.display = 'inline-block';
   btnQR.style.display = 'inline-block'; // Show QR button for encrypted content
   
@@ -1317,107 +2141,171 @@ lastExpirationDate = dateOnly;
 }
 
 function decrypt() {
-const prefix = 'TRADER';
-const suffix = 'SPIDER';
-const encrypted = prompt('Paste encrypted Base64:');
-const keyStr   = document.getElementById('key').value.trim();
-const outputEl = document.getElementById('output');
-const btnQR = document.getElementById('btnQR');
+  const keyStr = document.getElementById('key').value.trim();
+  const outputEl = document.getElementById('output');
+  if (keyStr.length !== 16) {
+    lastMode = '';
+    document.getElementById('btnCopy').style.display = 'none';
+    document.getElementById('btnQR').style.display = 'none';
+    document.getElementById('keyError').style.display = 'block';
+    outputEl.textContent = 'Enter a valid 16-character encryption key before verifying a license.';
+    outputEl.className = 'error';
+    telegramHaptic('error');
+    showNotification('Encryption key must be 16 characters', 'error');
+    return;
+  }
+  document.getElementById('keyError').style.display = 'none';
+  const modal = document.getElementById('decryptModal');
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  updateTelegramBackButton();
+  setTimeout(() => document.getElementById('decryptInput').focus(), 80);
+}
 
-// Validate presence
-if (!encrypted || keyStr.length !== 16) {
-  outputEl.textContent = '⚠️ Missing encrypted text or key (must be 16 characters)';
-  outputEl.className = 'error';
+function closeDecryptModal() {
+  const modal = document.getElementById('decryptModal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  updateTelegramBackButton();
+}
+
+async function pasteEncryptedText() {
+  const field = document.getElementById('decryptInput');
+  try {
+    if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') throw new Error('Clipboard unavailable');
+    const text = await navigator.clipboard.readText();
+    if (!text) throw new Error('Clipboard is empty');
+    field.value = text.trim();
+    field.focus();
+    telegramHaptic('light');
+    showNotification('License code pasted', 'success');
+  } catch (_) {
+    field.focus();
+    showNotification('Paste the license code into the field', 'warning');
+  }
+}
+
+function performDecrypt() {
+  lastMode = 'decrypt';
+  const prefix = 'TRADER';
+  const suffix = 'SPIDER';
+  const encrypted = document.getElementById('decryptInput').value.trim().replace(/^`|`$/g, '');
+  const keyStr = document.getElementById('key').value.trim();
+  const outputEl = document.getElementById('output');
+  const btnQR = document.getElementById('btnQR');
+  const btnCopy = document.getElementById('btnCopy');
+
+  outputEl.classList.remove('success', 'error', 'warning');
+  if (!encrypted || keyStr.length !== 16) {
+    outputEl.textContent = 'Enter an encrypted license code and a valid 16-character key.';
+    outputEl.classList.add('error');
+    btnQR.style.display = 'none';
+    btnCopy.style.display = 'none';
+    telegramHaptic('error');
+    showNotification('Encrypted code or key is missing', 'error');
+    return;
+  }
+
+  let raw = '';
+  try {
+    const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    raw = bytes.toString(CryptoJS.enc.Utf8);
+  } catch (e) {
+    raw = '';
+  }
+
+  let message = `🔓 Raw Decrypted:\n${raw || '(No readable data — check the key and license code)'}\n\n`;
+  try {
+    if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw new Error('Invalid license format or incorrect key');
+    const body = raw.slice(prefix.length);
+    const parts = body.split(suffix);
+    if (parts.length !== 2) throw new Error('Invalid license structure');
+    const [num, tsPart] = parts;
+    const ts = Number(tsPart);
+    if (!/^\d+$/.test(num) || !Number.isFinite(ts) || ts <= 0) throw new Error('Invalid account number or expiration timestamp');
+    const dateStr = new Date(ts * 1000).toLocaleString();
+    const expired = ts < Math.floor(Date.now() / 1000);
+    message += `✅ License format valid\n` +
+      `🔑 Account: ${num}\n` +
+      `⏰ Expiration: ${dateStr} (Unix: ${ts})\n` +
+      `${expired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
+    outputEl.classList.add(expired ? 'error' : 'success');
+    telegramHaptic(expired ? 'warning' : 'success');
+  } catch (err) {
+    message += `⚠️ Verification failed: ${err.message || err}`;
+    outputEl.classList.add('error');
+    telegramHaptic('error');
+  }
+
+  outputEl.textContent = message;
+  outputEl.setAttribute('aria-label', 'Decrypted license result. Tap to copy.');
+  outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  lastMode = 'decrypt';
   btnQR.style.display = 'none';
-  closeQRModal(); // Close QR modal
-  return;
-}
-
-// Decrypt
-let raw = '';
-try {
-  const bytes = CryptoJS.AES.decrypt(encrypted, padKey(keyStr), {
-    mode: CryptoJS.mode.ECB,
-    padding: CryptoJS.pad.Pkcs7
-  });
-  raw = bytes.toString(CryptoJS.enc.Utf8);
-} catch (e) {
-  raw = '';
-}
-
-// Always show raw
-let message = `🔓 Raw Decrypted:\n${raw}\n\n`;
-
-// Attempt to parse the decrypted text
-let parsed = false;
-try {
-  // Check for valid format
-  if (!raw.startsWith(prefix) || !raw.includes(suffix)) throw 'Invalid format';
-  
-  const body = raw.slice(prefix.length);
-  const parts = body.split(suffix);
-  if (parts.length !== 2) throw 'Invalid structure';
-  
-  const [num, tsPart] = parts;
-  const ts = parseInt(tsPart, 10);
-  const dateStr = new Date(ts * 1000).toLocaleString();
-  const nowSec = Math.floor(Date.now() / 1000);
-  const expired = ts < nowSec;
-
-  message += `✅ Parsed OK\n` +
-             `🔑 License ID: ${num}\n` +
-             `⏰ Expiration: ${dateStr} (Unix: ${ts})\n` +
-             `${expired ? '❌ LICENSE EXPIRED' : '✅ LICENSE ACTIVE'}`;
-  outputEl.className = expired ? 'error' : 'success';
-  parsed = true;
-} catch (err) {
-  // If the format is wrong, just show the raw data with warning
-  message += `⚠️ Parsing warning: ${err}`;
-  outputEl.className = 'warning';
-}
-
-// Display the message
-outputEl.textContent = message
-outputEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-lastMode = 'decrypt';
-btnQR.style.display = 'none'; // Hide QR button for decrypted content
-closeQRModal(); // Close QR modal
+  btnCopy.style.display = 'none';
+  closeDecryptModal();
 }
 
 // Copy raw function
+async function copyText(text) {
+  if (!text) return false;
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) {}
+  try {
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    helper.style.pointerEvents = 'none';
+    document.body.appendChild(helper);
+    helper.select();
+    const copied = document.execCommand('copy');
+    helper.remove();
+    return copied;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function copyRaw() {
-if (!lastEncryptedRaw) return;
-
-try {
-  await navigator.clipboard.writeText(lastEncryptedRaw);
-  showNotification('✅ Raw license key copied to clipboard!', 'success');
-} catch {
-  showNotification('❌ Failed to copy', 'error');
+  if (!lastEncryptedRaw) return;
+  const copied = await copyText(lastEncryptedRaw);
+  if (copied) {
+    telegramHaptic('success');
+    showNotification('Encrypted license copied', 'success');
+  } else {
+    telegramHaptic('error');
+    showNotification('Could not access clipboard', 'error');
+  }
 }
-}
 
-// Show notification
 function showNotification(message, type = '') {
-const notification = document.createElement('div');
-notification.textContent = message;
-notification.className = `notification ${type}`;
-
-document.body.appendChild(notification);
-
-// Fade in
-setTimeout(() => {
-  notification.style.opacity = '1';
-  notification.style.transform = 'translateX(-50%) translateY(0)';
-}, 10);
-
-// Fade out and remove after 2.5 seconds
-setTimeout(() => {
-  notification.style.opacity = '0';
-  notification.style.transform = 'translateX(-50%) translateY(20px)';
+  const notification = document.createElement('div');
+  notification.textContent = message;
+  notification.className = `notification ${type}`;
+  notification.setAttribute('role', 'status');
+  notification.setAttribute('aria-live', 'polite');
+  document.body.appendChild(notification);
+  requestAnimationFrame(() => {
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateX(-50%) translateY(0)';
+  });
   setTimeout(() => {
-    document.body.removeChild(notification);
-  }, 300);
-}, 2500);
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateX(-50%) translateY(12px)';
+    setTimeout(() => notification.remove(), 320);
+  }, 2400);
 }
 
 // Generate QR Code
@@ -1466,15 +2354,20 @@ document.getElementById('licenseText').textContent =
 
 // Show modal
 document.getElementById('qrModal').classList.add('active');
-
-showNotification('QR Code generated successfully!', 'purple');
+document.body.classList.add('modal-open');
+updateTelegramBackButton();
+telegramHaptic('success');
+showNotification('QR code is ready', 'purple');
 }
 
 // Close QR Modal
 function closeQRModal() {
 document.getElementById('qrModal').classList.remove('active');
 const qrElement = document.getElementById('qrcode');
-qrElement.innerHTML = ''; // Clear QR content
+if (qrElement) qrElement.innerHTML = '';
+const decryptModal = document.getElementById('decryptModal');
+if (!decryptModal || !decryptModal.classList.contains('active')) document.body.classList.remove('modal-open');
+updateTelegramBackButton();
 }
 
 /* تابع کمکی برای رسم مستطیل گوشه‌گرد */
@@ -1664,6 +2557,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize Telegram viewport/fullscreen support, then apply the active theme.
 initializeTelegramMiniApp();
 setSystemTheme();
+updateTelegramBackButton();
 
 // Set up Developer Mode tap counter
 setupTapCounter();
@@ -1693,23 +2587,53 @@ keyInput.addEventListener('input', function() {
   }
 });
 
-// Click on the <pre> copies for Telegram if encrypt, otherwise copies entire output text
-document.getElementById('output').addEventListener('click', async function() {
-  const txt = this.textContent.trim();
-  let toCopy = txt;
-
-  // Always copy the decrypted text in decrypt mode
-  if (lastMode === 'decrypt') {
-    toCopy = txt;  // This is the decrypted output
-  } else if (lastMode === 'encrypt' && lastEncryptedTelegram) {
-    toCopy = lastEncryptedTelegram;  // This is the encrypted output
+// Tap/click the result panel to copy its useful payload.
+async function copyOutputResult() {
+  if (!lastMode) return;
+  const txt = document.getElementById('output').textContent.trim();
+  const toCopy = lastMode === 'encrypt' && lastEncryptedTelegram ? lastEncryptedTelegram : txt;
+  const copied = await copyText(toCopy);
+  if (copied) {
+    telegramHaptic('success');
+    showNotification(lastMode === 'encrypt' ? 'License code copied' : 'Result copied', 'success');
+  } else {
+    showNotification('Could not access clipboard', 'error');
   }
+}
 
-  try {
-    await navigator.clipboard.writeText(toCopy);
-    showNotification('✅ Copied to clipboard!', 'success');
-  } catch {
-    showNotification('❌ Copy failed', 'error');
+document.getElementById('output').addEventListener('click', copyOutputResult);
+document.getElementById('output').addEventListener('keydown', event => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    copyOutputResult();
+  }
+});
+
+// Close dialogs from the backdrop or Escape; Telegram BackButton is wired in initializeTelegramMiniApp().
+document.getElementById('decryptModal').addEventListener('click', event => {
+  if (event.target.id === 'decryptModal') closeDecryptModal();
+});
+document.getElementById('qrModal').addEventListener('click', event => {
+  if (event.target.id === 'qrModal') closeQRModal();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    if (document.getElementById('decryptModal').classList.contains('active')) closeDecryptModal();
+    else if (document.getElementById('qrModal').classList.contains('active')) closeQRModal();
+  }
+});
+
+// Move naturally through the two most common fields with the mobile keyboard.
+document.getElementById('number').addEventListener('keydown', event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    document.getElementById('duration').focus();
+  }
+});
+document.getElementById('key').addEventListener('keydown', event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    encrypt();
   }
 });
 
